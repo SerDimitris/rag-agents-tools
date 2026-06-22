@@ -13,13 +13,24 @@ import { Toaster } from "./components/ui/sonner"
 import "./index.css"
 import { routeTree } from "./routeTree.gen"
 
-OpenAPI.BASE = import.meta.env.VITE_API_URL
+OpenAPI.BASE = import.meta.env.VITE_API_URL ?? ""
 OpenAPI.TOKEN = async () => {
   return localStorage.getItem("access_token") || ""
 }
 
 const handleApiError = (error: Error) => {
-  if (error instanceof ApiError && [401, 403].includes(error.status)) {
+  if (!(error instanceof ApiError)) return
+
+  const isAuthFailure =
+    [401, 403].includes(error.status) ||
+    (error.status === 404 &&
+      (error.url.includes("/users/me") ||
+        (typeof error.body === "object" &&
+          error.body !== null &&
+          "detail" in error.body &&
+          error.body.detail === "User not found")))
+
+  if (isAuthFailure) {
     localStorage.removeItem("access_token")
     window.location.href = "/login"
   }

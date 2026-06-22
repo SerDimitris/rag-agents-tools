@@ -1,6 +1,7 @@
 import secrets
 import warnings
 from typing import Annotated, Any, Literal
+from urllib.parse import urlparse
 
 from pydantic import (
     AnyUrl,
@@ -44,9 +45,21 @@ class Settings(BaseSettings):
     @computed_field  # type: ignore[prop-decorator]
     @property
     def all_cors_origins(self) -> list[str]:
-        return [str(origin).rstrip("/") for origin in self.BACKEND_CORS_ORIGINS] + [
-            self.FRONTEND_HOST
+        origins = [
+            str(origin).rstrip("/") for origin in self.BACKEND_CORS_ORIGINS
         ]
+        origins.append(self.FRONTEND_HOST.rstrip("/"))
+
+        if self.ENVIRONMENT == "local":
+            parsed = urlparse(self.FRONTEND_HOST)
+            scheme = parsed.scheme or "http"
+            port = parsed.port or 5173
+            local_ports = {port, 5173, 5174, 5175}
+            for host in ("localhost", "127.0.0.1"):
+                for local_port in local_ports:
+                    origins.append(f"{scheme}://{host}:{local_port}")
+
+        return list(dict.fromkeys(origins))
 
     PROJECT_NAME: str
     SENTRY_DSN: HttpUrl | None = None
@@ -93,6 +106,41 @@ class Settings(BaseSettings):
     EMAIL_TEST_USER: EmailStr = "test@example.com"
     FIRST_SUPERUSER: EmailStr
     FIRST_SUPERUSER_PASSWORD: str
+
+    OPENAI_API_KEY: str | None = None
+    OPENAI_MODEL: str = "gpt-4o-mini"
+    OPENAI_EMBEDDING_MODEL: str = "text-embedding-3-small"
+    EMBEDDING_DIMENSIONS: int = 1536
+    RAG_TOP_K: int = 5
+    RAG_CHUNK_SIZE: int = 1500
+    RAG_CHUNK_OVERLAP: int = 200
+    RAG_QUERY_EXPANSION_COUNT: int = 3
+    RAG_LLM_MAX_TOKENS: int = 1024
+    RAG_CHAT_HISTORY_MESSAGES: int = 6
+    RAG_SHORT_QUERY_WORDS: int = 4
+    LLM_BASE_URL: str | None = None
+    UPLOAD_DIR: str = "uploads"
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def llm_enabled(self) -> bool:
+        return bool(self.OPENAI_API_KEY or self.LLM_BASE_URL)
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def use_openai_embedding_dimensions(self) -> bool:
+        return (
+            self.LLM_BASE_URL is None
+            and self.OPENAI_EMBEDDING_MODEL == "text-embedding-3-small"
+        )
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def chat_max_tokens(self) -> int:
+        if self.LLM_BASE_URL:
+            return min(self.RAG_LLM_MAX_TOKENS, 512)
+        return self.RAG_LLM_MAX_TOKENS
+    MAX_UPLOAD_SIZE_MB: int = 25
 
     def _check_default_secret(self, var_name: str, value: str | None) -> None:
         if value == "changethis":

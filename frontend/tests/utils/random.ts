@@ -14,6 +14,3 @@ export const slugify = (text: string) =>
 
 export const randomDocumentTitle = () =>
   `Document ${Math.random().toString(36).substring(7)}`
-
-export const randomDocumentFilePath = () =>
-  `/uploads/${Math.random().toString(36).substring(7)}.pdf`

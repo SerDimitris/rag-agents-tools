@@ -1,10 +1,22 @@
+from sqlalchemy import event
 from sqlmodel import Session, create_engine, select
+
+from pgvector.psycopg import register_vector
 
 from app import crud
 from app.core.config import settings
 from app.models import User, UserCreate
 
 engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
+
+
+@event.listens_for(engine, "connect")
+def _register_pgvector(dbapi_connection, _connection_record) -> None:
+    try:
+        register_vector(dbapi_connection)
+    except Exception:  # noqa: BLE001
+        # Extension may not exist yet; migrations create it on first deploy.
+        pass
 
 
 # make sure all SQLModel models are imported (app.models) before initializing DB

@@ -1,5 +1,6 @@
 import { Appearance } from "@/components/Common/Appearance"
 import { Logo } from "@/components/Common/Logo"
+import { RetroStarfield } from "@/components/Common/RetroStarfield"
 import { Footer } from "./Footer"
 
 interface AuthLayoutProps {
@@ -9,8 +10,12 @@ interface AuthLayoutProps {
 export function AuthLayout({ children }: AuthLayoutProps) {
   return (
     <div className="grid min-h-svh lg:grid-cols-2">
-      <div className="bg-muted dark:bg-zinc-900 relative hidden lg:flex lg:items-center lg:justify-center">
-        <Logo variant="full" className="h-16" asLink={false} />
+      <div className="dark retro-cabinet-bg retro-scanlines relative hidden overflow-hidden lg:flex lg:flex-col lg:items-center lg:justify-center lg:gap-6">
+        <RetroStarfield />
+        <Logo variant="full" className="text-2xl sm:text-3xl z-10" asLink={false} />
+        <p className="font-retro-display text-[9px] sm:text-[10px] text-primary/80 retro-glow-cyan z-10 text-center px-6 tracking-wider">
+          READ · LEARN · LEVEL UP
+        </p>
       </div>
       <div className="flex flex-col gap-4 p-6 md:p-10">
         <div className="flex justify-end">

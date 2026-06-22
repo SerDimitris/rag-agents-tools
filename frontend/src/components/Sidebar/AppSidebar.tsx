@@ -1,4 +1,4 @@
-import { FileText, Home, Users } from "lucide-react"
+import { FileText, Home, MessageSquare, Users } from "lucide-react"
 
 import { SidebarAppearance } from "@/components/Common/Appearance"
 import { Logo } from "@/components/Common/Logo"
@@ -15,6 +15,7 @@ import { User } from "./User"
 const baseItems: Item[] = [
   { icon: Home, title: "Dashboard", path: "/" },
   { icon: FileText, title: "Documents", path: "/documents" },
+  { icon: MessageSquare, title: "Chat", path: "/chat" },
 ]
 
 export function AppSidebar() {

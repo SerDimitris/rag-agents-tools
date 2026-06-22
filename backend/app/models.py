@@ -4,9 +4,12 @@ from enum import Enum
 from typing import Any
 
 from pydantic import EmailStr
-from sqlalchemy import Column, DateTime
+from pgvector.sqlalchemy import Vector
+from sqlalchemy import Column, DateTime, Text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Field, SQLModel
+
+from app.core.config import settings
 
 
 def get_datetime_utc() -> datetime:
@@ -127,6 +130,61 @@ class DocumentPublic(DocumentBase):
 class DocumentsPublic(SQLModel):
     data: list[DocumentPublic]
     count: int
+
+
+class DocumentChunk(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    document_id: uuid.UUID = Field(
+        foreign_key="document.id", nullable=False, ondelete="CASCADE"
+    )
+    chunk_index: int = Field(default=0)
+    chunk_type: str = Field(default="text", max_length=32)
+    content: str = Field(sa_column=Column(Text, nullable=False))
+    embedding: list[float] | None = Field(
+        default=None,
+        sa_column=Column(Vector(settings.EMBEDDING_DIMENSIONS), nullable=True),
+    )
+
+
+class ChatMessageRole(str, Enum):
+    user = "user"
+    assistant = "assistant"
+
+
+class ChatMessageBase(SQLModel):
+    content: str = Field(min_length=1, max_length=10000)
+
+
+class ChatMessageCreate(ChatMessageBase):
+    pass
+
+
+class ChatMessage(ChatMessageBase, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    user_id: uuid.UUID = Field(
+        foreign_key="user.id", nullable=False, ondelete="CASCADE"
+    )
+    role: ChatMessageRole
+    created_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+
+
+class ChatMessagePublic(ChatMessageBase):
+    id: uuid.UUID
+    role: ChatMessageRole
+    created_at: datetime | None = None
+
+
+class ChatMessagesPublic(SQLModel):
+    data: list[ChatMessagePublic]
+    count: int
+
+
+class ChatResponse(SQLModel):
+    user_message: ChatMessagePublic
+    assistant_message: ChatMessagePublic
 
 
 # Generic message

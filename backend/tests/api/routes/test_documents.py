@@ -24,6 +24,24 @@ def test_create_document(
     assert "id" in content
 
 
+def test_upload_document(
+    client: TestClient, superuser_token_headers: dict[str, str]
+) -> None:
+    from io import BytesIO
+
+    response = client.post(
+        f"{settings.API_V1_STR}/documents/upload",
+        headers=superuser_token_headers,
+        files={"file": ("report.txt", BytesIO(b"Quarterly report content"), "text/plain")},
+        data={"title": "Quarterly Report"},
+    )
+    assert response.status_code == 200
+    content = response.json()
+    assert content["title"] == "Quarterly Report"
+    assert content["status"] == "pending"
+    assert content["file_path"].startswith("uploads/")
+
+
 def test_create_document_not_enough_permissions(
     client: TestClient, normal_user_token_headers: dict[str, str]
 ) -> None:

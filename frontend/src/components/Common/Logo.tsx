@@ -1,11 +1,7 @@
 import { Link } from "@tanstack/react-router"
 
-import { useTheme } from "@/components/theme-provider"
+import { APP_NAME } from "@/lib/brand"
 import { cn } from "@/lib/utils"
-import icon from "/assets/images/fastapi-icon.svg"
-import iconLight from "/assets/images/fastapi-icon-light.svg"
-import logo from "/assets/images/fastapi-logo.svg"
-import logoLight from "/assets/images/fastapi-logo-light.svg"
 
 interface LogoProps {
   variant?: "full" | "icon" | "responsive"
@@ -13,48 +9,72 @@ interface LogoProps {
   asLink?: boolean
 }
 
+function LogoMark({ className }: { className?: string }) {
+  return (
+    <span
+      className={cn(
+        "font-retro-display text-primary retro-glow-cyan select-none",
+        className,
+      )}
+      aria-hidden
+    >
+      Δ
+    </span>
+  )
+}
+
+function LogoFull({ className }: { className?: string }) {
+  return (
+    <span
+      className={cn(
+        "font-retro-brand tracking-tight select-none leading-none",
+        className,
+      )}
+    >
+      <span className="text-foreground retro-logo-greek">Διάβασ</span>
+      <span className="text-primary retro-glow-cyan">ΑΙ</span>
+    </span>
+  )
+}
+
 export function Logo({
   variant = "full",
   className,
   asLink = true,
 }: LogoProps) {
-  const { resolvedTheme } = useTheme()
-  const isDark = resolvedTheme === "dark"
-
-  const fullLogo = isDark ? logoLight : logo
-  const iconLogo = isDark ? iconLight : icon
-
   const content =
     variant === "responsive" ? (
       <>
-        <img
-          src={fullLogo}
-          alt="FastAPI"
+        <LogoFull
           className={cn(
-            "h-6 w-auto group-data-[collapsible=icon]:hidden",
+            "text-lg sm:text-xl group-data-[collapsible=icon]:hidden",
             className,
           )}
         />
-        <img
-          src={iconLogo}
-          alt="FastAPI"
+        <LogoMark
           className={cn(
-            "size-5 hidden group-data-[collapsible=icon]:block",
+            "text-xl hidden group-data-[collapsible=icon]:block",
             className,
           )}
         />
       </>
+    ) : variant === "full" ? (
+      <LogoFull className={cn("text-lg sm:text-xl", className)} />
     ) : (
-      <img
-        src={variant === "full" ? fullLogo : iconLogo}
-        alt="FastAPI"
-        className={cn(variant === "full" ? "h-6 w-auto" : "size-5", className)}
-      />
+      <LogoMark className={cn("text-xl", className)} />
     )
 
   if (!asLink) {
-    return content
+    return (
+      <div role="img" aria-label={APP_NAME}>
+        {content}
+      </div>
+    )
   }
 
-  return <Link to="/">{content}</Link>
+  return (
+    <Link to="/" aria-label={APP_NAME}>
+      {content}
+    </Link>
+  )
 }

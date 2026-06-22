@@ -5,16 +5,18 @@ import { Suspense } from "react"
 
 import { DocumentsService } from "@/client"
 import { DataTable } from "@/components/Common/DataTable"
-import AddDocument from "@/components/Documents/AddDocument"
 import { getDocumentColumns } from "@/components/Documents/columns"
+import UploadDocument from "@/components/Documents/UploadDocument"
 import PendingDocuments from "@/components/Pending/PendingDocuments"
 import useAuth from "@/hooks/useAuth"
 import { canManageDocuments } from "@/lib/roles"
+import { pageTitle } from "@/lib/brand"
 
 function getDocumentsQueryOptions() {
   return {
     queryFn: () => DocumentsService.readDocuments({ skip: 0, limit: 100 }),
     queryKey: ["documents"],
+    refetchInterval: 5000,
   }
 }
 
@@ -23,7 +25,7 @@ export const Route = createFileRoute("/_layout/documents")({
   head: () => ({
     meta: [
       {
-        title: "Documents - FastAPI Template",
+        title: pageTitle("Documents"),
       },
     ],
   }),
@@ -42,9 +44,7 @@ function DocumentsTableContent() {
         </div>
         <h3 className="text-lg font-semibold">No documents yet</h3>
         <p className="text-muted-foreground">
-          {canManage
-            ? "Add a new document to get started"
-            : "Documents will appear here once they are uploaded"}
+          Upload a document to start extraction
         </p>
       </div>
     )
@@ -67,19 +67,16 @@ function DocumentsTable() {
 }
 
 function Documents() {
-  const { user } = useAuth()
-  const canManage = canManageDocuments(user)
-
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Documents</h1>
           <p className="text-muted-foreground">
-            View and manage uploaded documents
+            Upload files and track extraction status
           </p>
         </div>
-        {canManage && <AddDocument />}
+        <UploadDocument />
       </div>
       <DocumentsTable />
     </div>

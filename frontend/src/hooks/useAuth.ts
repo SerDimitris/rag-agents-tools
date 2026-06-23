@@ -1,29 +1,27 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useMutation } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
-
 import {
-  type Body_login_login_access_token as AccessToken,
-  LoginService,
-  type UserPublic,
+  ACCESS_TOKEN_KEY,
+  type ApiError,
   type UserRegister,
+  useAuthSession,
   UsersService,
-} from "@/client"
+} from "@rag-agent/shared"
 import { handleError } from "@/utils"
 import useCustomToast from "./useCustomToast"
 
 const isLoggedIn = () => {
-  return localStorage.getItem("access_token") !== null
+  return localStorage.getItem(ACCESS_TOKEN_KEY) !== null
 }
 
 const useAuth = () => {
   const navigate = useNavigate()
-  const queryClient = useQueryClient()
   const { showErrorToast } = useCustomToast()
 
-  const { data: user } = useQuery<UserPublic | null, Error>({
-    queryKey: ["currentUser"],
-    queryFn: UsersService.readUserMe,
-    enabled: isLoggedIn(),
+  const session = useAuthSession({
+    onLoginSuccess: () => navigate({ to: "/" }),
+    onLogout: () => navigate({ to: "/login" }),
+    onError: showErrorToast,
   })
 
   const signUpMutation = useMutation({
@@ -32,37 +30,16 @@ const useAuth = () => {
     onSuccess: () => {
       navigate({ to: "/login" })
     },
-    onError: handleError.bind(showErrorToast),
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["users"] })
+    onError: (err: Error) => {
+      handleError.call(showErrorToast, err as ApiError)
     },
   })
-
-  const login = async (data: AccessToken) => {
-    const response = await LoginService.loginAccessToken({
-      formData: data,
-    })
-    localStorage.setItem("access_token", response.access_token)
-  }
-
-  const loginMutation = useMutation({
-    mutationFn: login,
-    onSuccess: () => {
-      navigate({ to: "/" })
-    },
-    onError: handleError.bind(showErrorToast),
-  })
-
-  const logout = () => {
-    localStorage.removeItem("access_token")
-    navigate({ to: "/login" })
-  }
 
   return {
     signUpMutation,
-    loginMutation,
-    logout,
-    user,
+    loginMutation: session.loginMutation,
+    logout: session.logout,
+    user: session.user,
   }
 }
 

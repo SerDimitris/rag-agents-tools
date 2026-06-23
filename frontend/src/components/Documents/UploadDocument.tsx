@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { LoadingButton } from "@/components/ui/loading-button"
 import useCustomToast from "@/hooks/useCustomToast"
-import { useCustomer } from "@/contexts/CustomerContext"
+import { useCustomer } from "@rag-agent/shared"
 import { uploadDocument } from "@/lib/uploadDocument"
 import { cn } from "@/lib/utils"
 

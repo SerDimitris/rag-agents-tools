@@ -5,7 +5,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { useCustomer } from "@/contexts/CustomerContext"
+import { useCustomer } from "@rag-agent/shared"
 
 export function CustomerSelect() {
   const { customers, customerId, setCustomerId, isLoading } = useCustomer()

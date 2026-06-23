@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useForm } from "react-hook-form"
 
-import { UsersService } from "@/client"
+import { UsersService } from "@rag-agent/shared"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,

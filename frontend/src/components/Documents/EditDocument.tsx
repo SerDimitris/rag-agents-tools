@@ -9,7 +9,7 @@ import {
   type DocumentPublic,
   type DocumentStatus,
   DocumentsService,
-} from "@/client"
+} from "@rag-agent/shared"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,

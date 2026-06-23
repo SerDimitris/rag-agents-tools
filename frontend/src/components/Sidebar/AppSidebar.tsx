@@ -1,5 +1,3 @@
-import { FileText, Home, MessageSquare, Users } from "lucide-react"
-
 import { SidebarAppearance } from "@/components/Common/Appearance"
 import { Logo } from "@/components/Common/Logo"
 import {
@@ -9,21 +7,13 @@ import {
   SidebarHeader,
 } from "@/components/ui/sidebar"
 import useAuth from "@/hooks/useAuth"
-import { type Item, Main } from "./Main"
+import { getNavItems } from "@/lib/roles"
+import { Main } from "./Main"
 import { User } from "./User"
-
-const baseItems: Item[] = [
-  { icon: Home, title: "Dashboard", path: "/" },
-  { icon: FileText, title: "Documents", path: "/documents" },
-  { icon: MessageSquare, title: "Chat", path: "/chat" },
-]
 
 export function AppSidebar() {
   const { user: currentUser } = useAuth()
-
-  const items = currentUser?.is_superuser
-    ? [...baseItems, { icon: Users, title: "Admin", path: "/admin" }]
-    : baseItems
+  const items = getNavItems(currentUser)
 
   return (
     <Sidebar collapsible="icon">

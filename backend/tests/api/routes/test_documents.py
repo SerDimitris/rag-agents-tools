@@ -122,9 +122,39 @@ def test_read_document_as_viewer(
         headers=normal_user_token_headers,
         params={"customer_id": str(document.customer_id)},
     )
-    assert response.status_code == 200
+    assert response.status_code == 403
     content = response.json()
-    assert content["id"] == str(document.id)
+    assert content["detail"] == "Not enough permissions"
+
+
+def test_read_documents_as_viewer(
+    client: TestClient, normal_user_token_headers: dict[str, str], db: Session
+) -> None:
+    customer = create_random_customer(db)
+    create_random_document(db, customer_id=customer.id)
+    response = client.get(
+        f"{settings.API_V1_STR}/documents/",
+        headers=normal_user_token_headers,
+        params={"customer_id": str(customer.id)},
+    )
+    assert response.status_code == 403
+    content = response.json()
+    assert content["detail"] == "Not enough permissions"
+
+
+def test_upload_document_not_enough_permissions(
+    client: TestClient, normal_user_token_headers: dict[str, str], db: Session
+) -> None:
+    customer = create_random_customer(db)
+    response = client.post(
+        f"{settings.API_V1_STR}/documents/upload",
+        headers=normal_user_token_headers,
+        files={"file": ("report.txt", BytesIO(b"Quarterly report content"), "text/plain")},
+        data={"title": "Quarterly Report", "customer_id": str(customer.id)},
+    )
+    assert response.status_code == 403
+    content = response.json()
+    assert content["detail"] == "Not enough permissions"
 
 
 def test_read_documents_filtered_by_customer(

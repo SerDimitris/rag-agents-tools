@@ -1,7 +1,7 @@
 import { EllipsisVertical } from "lucide-react"
 import { useState } from "react"
 
-import type { CustomerPublic } from "@/client"
+import type { CustomerPublic } from "@rag-agent/shared"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,

@@ -3,7 +3,7 @@ import { Trash2 } from "lucide-react"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 
-import { DocumentsService } from "@/client"
+import { DocumentsService } from "@rag-agent/shared"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,

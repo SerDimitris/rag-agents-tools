@@ -1,5 +1,5 @@
-import { OpenAPI } from "@/client"
-import type { DocumentPublic } from "@/client"
+import { OpenAPI } from "@rag-agent/shared"
+import type { DocumentPublic } from "@rag-agent/shared"
 
 export async function uploadDocument(
   file: File,

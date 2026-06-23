@@ -5,7 +5,7 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 
-import { CustomersService } from "@/client"
+import { CustomersService } from "@rag-agent/shared"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,

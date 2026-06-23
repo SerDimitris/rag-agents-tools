@@ -8,8 +8,9 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
-import { CustomerProvider } from "@/contexts/CustomerContext"
-import { isLoggedIn } from "@/hooks/useAuth"
+import { CustomerProvider } from "@rag-agent/shared"
+import useAuth, { isLoggedIn } from "@/hooks/useAuth"
+import { canShowHeaderCustomerSelect } from "@/lib/roles"
 
 export const Route = createFileRoute("/_layout")({
   component: Layout,
@@ -23,6 +24,9 @@ export const Route = createFileRoute("/_layout")({
 })
 
 function Layout() {
+  const { user } = useAuth()
+  const showHeaderCustomerSelect = canShowHeaderCustomerSelect(user)
+
   return (
     <CustomerProvider>
       <SidebarProvider>
@@ -30,7 +34,7 @@ function Layout() {
         <SidebarInset>
           <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b border-primary/20 px-4 retro-pixel-border-t">
             <SidebarTrigger className="-ml-1 text-muted-foreground" />
-            <CustomerSelect />
+            {showHeaderCustomerSelect && <CustomerSelect />}
           </header>
           <main className="flex-1 p-6 md:p-8">
             <div className="mx-auto max-w-7xl">

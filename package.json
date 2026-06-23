@@ -2,12 +2,17 @@
   "name": "fastapi-full-stack-template",
   "private": true,
   "workspaces": [
-    "frontend"
+    "frontend",
+    "extension",
+    "packages/shared"
   ],
   "scripts": {
-    "dev": "bun run --filter frontend dev",
-    "lint": "bun run --filter frontend lint",
-    "test": "bun run --filter frontend test",
-    "test:ui": "bun run --filter frontend test:ui"
+    "dev": "npm run --workspace frontend dev",
+    "dev:extension": "npm run --workspace extension dev",
+    "build": "npm run --workspace frontend build",
+    "build:extension": "npm run --workspace extension build",
+    "lint": "npm run --workspace frontend lint",
+    "test": "npm run --workspace frontend test",
+    "test:ui": "npm run --workspace frontend test:ui"
   }
 }

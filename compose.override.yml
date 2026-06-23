@@ -64,20 +64,24 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile
-    # command: sleep infinity  # Infinite loop to keep container alive doing nothing
+    # Without --reload: on Docker Desktop for Windows, --reload often loops forever
+    # because __pycache__/volume writes retrigger watchfiles and the API hangs.
     command:
       - fastapi
       - run
-      - --reload
       - "app/main.py"
     develop:
       watch:
         - path: ./backend
-          action: sync
+          action: sync+restart
           target: /app/backend
           ignore:
             - ./backend/.venv
             - .venv
+            - ./backend/__pycache__
+            - ./backend/**/__pycache__
+            - ./backend/htmlcov
+            - ./backend/uploads
         - path: ./backend/pyproject.toml
           action: rebuild
     # TODO: remove once coverage is done locally
@@ -85,6 +89,7 @@ services:
       - ./backend/htmlcov:/app/backend/htmlcov
       - ./backend/uploads:/app/backend/uploads
     environment:
+      PYTHONDONTWRITEBYTECODE: "1"
       SMTP_HOST: "mailcatcher"
       SMTP_PORT: "1025"
       SMTP_TLS: "false"

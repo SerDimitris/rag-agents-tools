@@ -1,22 +1,18 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Loader2, Send } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
-
-import { ChatService, type ChatMessagePublic } from "@/client"
+import {
+  type ChatMessagePublic,
+  useChatMessages,
+  useCustomer,
+  useSendChatMessage,
+} from "@rag-agent/shared"
 import { Button } from "@/components/ui/button"
+import { CustomerSelect } from "@/components/Customers/CustomerSelect"
 import { Input } from "@/components/ui/input"
-import { useCustomer } from "@/contexts/CustomerContext"
-import { cn } from "@/lib/utils"
+import useAuth from "@/hooks/useAuth"
 import useCustomToast from "@/hooks/useCustomToast"
-import { handleError } from "@/utils"
-
-function getChatMessagesQueryOptions(customerId: string) {
-  return {
-    queryKey: ["chat-messages", customerId],
-    queryFn: () =>
-      ChatService.readChatMessages({ customerId, skip: 0, limit: 100 }),
-  }
-}
+import { canShowHeaderCustomerSelect } from "@/lib/roles"
+import { cn } from "@/lib/utils"
 
 function ChatBubble({ message }: { message: ChatMessagePublic }) {
   const isUser = message.role === "user"
@@ -39,32 +35,17 @@ function ChatBubble({ message }: { message: ChatMessagePublic }) {
 
 export function ChatPanel() {
   const [input, setInput] = useState("")
-  const queryClient = useQueryClient()
   const { showErrorToast } = useCustomToast()
   const scrollRef = useRef<HTMLDivElement>(null)
+  const { user } = useAuth()
   const { customerId, selectedCustomer } = useCustomer()
+  const showChatCustomerSelect = !canShowHeaderCustomerSelect(user)
 
-  const { data, isLoading } = useQuery({
-    ...getChatMessagesQueryOptions(customerId ?? ""),
-    enabled: Boolean(customerId),
-  })
+  const { data, isLoading } = useChatMessages(customerId)
 
-  const mutation = useMutation({
-    mutationFn: (content: string) => {
-      if (!customerId) {
-        throw new Error("Please select a customer first")
-      }
-      return ChatService.sendChatMessage({
-        requestBody: { content, customer_id: customerId },
-      })
-    },
-    onSuccess: () => {
-      setInput("")
-      if (customerId) {
-        queryClient.invalidateQueries({ queryKey: ["chat-messages", customerId] })
-      }
-    },
-    onError: handleError.bind(showErrorToast),
+  const mutation = useSendChatMessage(customerId, {
+    onSuccess: () => setInput(""),
+    onError: (message) => showErrorToast(message),
   })
 
   useEffect(() => {
@@ -83,7 +64,8 @@ export function ChatPanel() {
 
   if (!customerId) {
     return (
-      <div className="flex h-[calc(100vh-12rem)] items-center justify-center rounded-none border-2 bg-card retro-pixel-shadow">
+      <div className="flex h-[calc(100vh-12rem)] flex-col items-center justify-center gap-4 rounded-none border-2 bg-card retro-pixel-shadow">
+        {showChatCustomerSelect && <CustomerSelect />}
         <p className="text-muted-foreground">Select a customer to start chatting.</p>
       </div>
     )
@@ -91,8 +73,15 @@ export function ChatPanel() {
 
   return (
     <div className="flex h-[calc(100vh-12rem)] flex-col rounded-none border-2 bg-card retro-pixel-shadow">
-      <div className="border-b px-4 py-2 text-sm text-muted-foreground">
-        Chatting for <span className="font-medium text-foreground">{selectedCustomer?.name}</span>
+      <div className="flex items-center justify-between border-b px-4 py-2 text-sm text-muted-foreground">
+        {showChatCustomerSelect ? (
+          <CustomerSelect />
+        ) : (
+          <span>
+            Chatting for{" "}
+            <span className="font-medium text-foreground">{selectedCustomer?.name}</span>
+          </span>
+        )}
       </div>
       <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto p-4">
         {isLoading ? (

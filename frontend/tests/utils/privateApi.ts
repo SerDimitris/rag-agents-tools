@@ -1,6 +1,6 @@
 // Note: the `PrivateService` is only available when generating the client
 // for local environments
-import { OpenAPI, PrivateService } from "../../src/client"
+import { OpenAPI, PrivateService } from "@rag-agent/shared"
 
 OpenAPI.BASE = `${process.env.VITE_API_URL}`
 

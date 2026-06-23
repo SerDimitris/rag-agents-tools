@@ -2,7 +2,7 @@ import { useSuspenseQuery } from "@tanstack/react-query"
 import { createFileRoute, redirect } from "@tanstack/react-router"
 import { Suspense } from "react"
 
-import { type UserPublic, UsersService } from "@/client"
+import { type UserPublic, UsersService } from "@rag-agent/shared"
 import AddUser from "@/components/Admin/AddUser"
 import { CustomersAdminSection } from "@/components/Admin/customers/CustomersAdminSection"
 import { columns, type UserTableData } from "@/components/Admin/columns"

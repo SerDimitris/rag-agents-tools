@@ -1,6 +1,6 @@
 import type { ColumnDef } from "@tanstack/react-table"
 
-import type { CustomerPublic } from "@/client"
+import type { CustomerPublic } from "@rag-agent/shared"
 import { cn } from "@/lib/utils"
 import { CustomerActionsMenu } from "./CustomerActionsMenu"
 

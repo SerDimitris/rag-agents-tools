@@ -1,5 +1,5 @@
+import type { ApiError } from "@rag-agent/shared"
 import { AxiosError } from "axios"
-import type { ApiError } from "./client"
 
 function extractErrorMessage(err: ApiError): string {
   if (err instanceof AxiosError) {

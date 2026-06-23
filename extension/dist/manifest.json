@@ -1,0 +1,38 @@
+{
+  "manifest_version": 3,
+  "name": "RAG Chat Assistant",
+  "version": "0.1.0",
+  "description": "Viewer chat widget for the RAG multitenant assistant",
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "http://localhost:8000/*",
+    "http://127.0.0.1:8000/*",
+    "http://localhost/*",
+    "http://127.0.0.1/*"
+  ],
+  "content_scripts": [
+    {
+      "js": [
+        "assets/content-script.ts-DnbQdZNU.js"
+      ],
+      "matches": [
+        "<all_urls>"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "resources": [
+        "panel.html",
+        "assets/content-script.ts-DnbQdZNU.js"
+      ],
+      "use_dynamic_url": false
+    }
+  ]
+}

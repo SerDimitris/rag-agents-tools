@@ -6,7 +6,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPExcepti
 from sqlmodel import Session, col, func, select
 
 from app.agents.extractor import run_document_extraction
-from app.api.deps import CurrentUser, SessionDep, get_current_moderator, get_customer_or_404
+from app.api.deps import SessionDep, get_current_moderator, get_customer_or_404
 from app.core.config import settings
 from app.core.db import engine
 from app.models import (
@@ -36,7 +36,7 @@ def _schedule_extraction(background_tasks: BackgroundTasks, document_id: uuid.UU
 @router.get("/", response_model=DocumentsPublic)
 def read_documents(
     session: SessionDep,
-    current_user: CurrentUser,
+    current_user: User = Depends(get_current_moderator),
     customer_id: uuid.UUID,
     skip: int = 0,
     limit: int = 100,
@@ -71,7 +71,7 @@ def read_documents(
 async def upload_document(
     *,
     session: SessionDep,
-    current_user: CurrentUser,
+    current_user: User = Depends(get_current_moderator),
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     customer_id: uuid.UUID = Form(...),
@@ -124,7 +124,7 @@ async def upload_document(
 @router.get("/{id}", response_model=DocumentPublic)
 def read_document(
     session: SessionDep,
-    current_user: CurrentUser,
+    current_user: User = Depends(get_current_moderator),
     id: uuid.UUID,
     customer_id: uuid.UUID,
 ) -> Any:

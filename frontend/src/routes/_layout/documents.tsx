@@ -1,16 +1,16 @@
 import { useSuspenseQuery } from "@tanstack/react-query"
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, redirect } from "@tanstack/react-router"
 import { Search } from "lucide-react"
 import { Suspense } from "react"
 
-import { DocumentsService } from "@/client"
+import { DocumentsService, UsersService } from "@rag-agent/shared"
 import { DataTable } from "@/components/Common/DataTable"
 import { getDocumentColumns } from "@/components/Documents/columns"
 import UploadDocument from "@/components/Documents/UploadDocument"
 import PendingDocuments from "@/components/Pending/PendingDocuments"
-import { useCustomer } from "@/contexts/CustomerContext"
+import { useCustomer } from "@rag-agent/shared"
 import useAuth from "@/hooks/useAuth"
-import { canManageDocuments } from "@/lib/roles"
+import { canAccessDocuments, canManageDocuments } from "@/lib/roles"
 import { pageTitle } from "@/lib/brand"
 
 function getDocumentsQueryOptions(customerId: string) {
@@ -28,6 +28,14 @@ function getDocumentsQueryOptions(customerId: string) {
 
 export const Route = createFileRoute("/_layout/documents")({
   component: Documents,
+  beforeLoad: async () => {
+    const user = await UsersService.readUserMe()
+    if (!canAccessDocuments(user)) {
+      throw redirect({
+        to: "/",
+      })
+    }
+  },
   head: () => ({
     meta: [
       {
@@ -90,6 +98,9 @@ function DocumentsTable() {
 }
 
 function Documents() {
+  const { user } = useAuth()
+  const canManage = canManageDocuments(user)
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
@@ -99,7 +110,7 @@ function Documents() {
             Upload files and track extraction status for the selected customer
           </p>
         </div>
-        <UploadDocument />
+        {canManage && <UploadDocument />}
       </div>
       <DocumentsTable />
     </div>

@@ -3,23 +3,25 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { ChatReadChatMessagesData, ChatReadChatMessagesResponse, ChatSendChatMessageData, ChatSendChatMessageResponse, DocumentsReadDocumentsData, DocumentsReadDocumentsResponse, DocumentsCreateDocumentData, DocumentsCreateDocumentResponse, DocumentsUploadDocumentData, DocumentsUploadDocumentResponse, DocumentsReadDocumentData, DocumentsReadDocumentResponse, DocumentsUpdateDocumentData, DocumentsUpdateDocumentResponse, DocumentsDeleteDocumentData, DocumentsDeleteDocumentResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, PrivateCreateUserData, PrivateCreateUserResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { ChatReadChatMessagesData, ChatReadChatMessagesResponse, ChatSendChatMessageData, ChatSendChatMessageResponse, CustomersReadCustomersData, CustomersReadCustomersResponse, CustomersCreateCustomerData, CustomersCreateCustomerResponse, CustomersReadCustomerData, CustomersReadCustomerResponse, CustomersUpdateCustomerData, CustomersUpdateCustomerResponse, CustomersDeleteCustomerData, CustomersDeleteCustomerResponse, DocumentsReadDocumentsData, DocumentsReadDocumentsResponse, DocumentsCreateDocumentData, DocumentsCreateDocumentResponse, DocumentsUploadDocumentData, DocumentsUploadDocumentResponse, DocumentsReadDocumentData, DocumentsReadDocumentResponse, DocumentsUpdateDocumentData, DocumentsUpdateDocumentResponse, DocumentsDeleteDocumentData, DocumentsDeleteDocumentResponse, DocumentsReextractDocumentData, DocumentsReextractDocumentResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, PrivateCreateUserData, PrivateCreateUserResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
 
 export class ChatService {
     /**
      * Read Chat Messages
-     * Retrieve chat messages for the current user.
+     * Retrieve chat messages for the current user and customer.
      * @param data The data for the request.
+     * @param data.customerId
      * @param data.skip
      * @param data.limit
      * @returns ChatMessagesPublic Successful Response
      * @throws ApiError
      */
-    public static readChatMessages(data: ChatReadChatMessagesData = {}): CancelablePromise<ChatReadChatMessagesResponse> {
+    public static readChatMessages(data: ChatReadChatMessagesData): CancelablePromise<ChatReadChatMessagesResponse> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/chat/messages',
             query: {
+                customer_id: data.customerId,
                 skip: data.skip,
                 limit: data.limit
             },
@@ -50,21 +52,136 @@ export class ChatService {
     }
 }
 
+export class CustomersService {
+    /**
+     * Read Customers
+     * Retrieve customers for the selection dropdown.
+     * @param data The data for the request.
+     * @param data.skip
+     * @param data.limit
+     * @param data.includeInactive
+     * @returns CustomersPublic Successful Response
+     * @throws ApiError
+     */
+    public static readCustomers(data: CustomersReadCustomersData = {}): CancelablePromise<CustomersReadCustomersResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/customers/',
+            query: {
+                skip: data.skip,
+                limit: data.limit,
+                include_inactive: data.includeInactive
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Create Customer
+     * Create a new customer (superuser only).
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns CustomerPublic Successful Response
+     * @throws ApiError
+     */
+    public static createCustomer(data: CustomersCreateCustomerData): CancelablePromise<CustomersCreateCustomerResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/customers/',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Customer
+     * Get customer by ID.
+     * @param data The data for the request.
+     * @param data.id
+     * @returns CustomerPublic Successful Response
+     * @throws ApiError
+     */
+    public static readCustomer(data: CustomersReadCustomerData): CancelablePromise<CustomersReadCustomerResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/customers/{id}',
+            path: {
+                id: data.id
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Update Customer
+     * Update a customer (superuser only).
+     * @param data The data for the request.
+     * @param data.id
+     * @param data.requestBody
+     * @returns CustomerPublic Successful Response
+     * @throws ApiError
+     */
+    public static updateCustomer(data: CustomersUpdateCustomerData): CancelablePromise<CustomersUpdateCustomerResponse> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/api/v1/customers/{id}',
+            path: {
+                id: data.id
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Delete Customer
+     * Delete a customer (superuser only). Blocked if documents exist.
+     * @param data The data for the request.
+     * @param data.id
+     * @returns Message Successful Response
+     * @throws ApiError
+     */
+    public static deleteCustomer(data: CustomersDeleteCustomerData): CancelablePromise<CustomersDeleteCustomerResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/customers/{id}',
+            path: {
+                id: data.id
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
 export class DocumentsService {
     /**
      * Read Documents
-     * Retrieve documents.
+     * Retrieve documents for a customer.
      * @param data The data for the request.
+     * @param data.customerId
      * @param data.skip
      * @param data.limit
      * @returns DocumentsPublic Successful Response
      * @throws ApiError
      */
-    public static readDocuments(data: DocumentsReadDocumentsData = {}): CancelablePromise<DocumentsReadDocumentsResponse> {
+    public static readDocuments(data: DocumentsReadDocumentsData): CancelablePromise<DocumentsReadDocumentsResponse> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/documents/',
             query: {
+                customer_id: data.customerId,
                 skip: data.skip,
                 limit: data.limit
             },
@@ -116,9 +233,10 @@ export class DocumentsService {
     
     /**
      * Read Document
-     * Get document by ID.
+     * Get document by ID for a customer.
      * @param data The data for the request.
      * @param data.id
+     * @param data.customerId
      * @returns DocumentPublic Successful Response
      * @throws ApiError
      */
@@ -128,6 +246,9 @@ export class DocumentsService {
             url: '/api/v1/documents/{id}',
             path: {
                 id: data.id
+            },
+            query: {
+                customer_id: data.customerId
             },
             errors: {
                 422: 'Validation Error'
@@ -140,6 +261,7 @@ export class DocumentsService {
      * Update a document.
      * @param data The data for the request.
      * @param data.id
+     * @param data.customerId
      * @param data.requestBody
      * @returns DocumentPublic Successful Response
      * @throws ApiError
@@ -150,6 +272,9 @@ export class DocumentsService {
             url: '/api/v1/documents/{id}',
             path: {
                 id: data.id
+            },
+            query: {
+                customer_id: data.customerId
             },
             body: data.requestBody,
             mediaType: 'application/json',
@@ -164,6 +289,7 @@ export class DocumentsService {
      * Delete a document.
      * @param data The data for the request.
      * @param data.id
+     * @param data.customerId
      * @returns Message Successful Response
      * @throws ApiError
      */
@@ -173,6 +299,34 @@ export class DocumentsService {
             url: '/api/v1/documents/{id}',
             path: {
                 id: data.id
+            },
+            query: {
+                customer_id: data.customerId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Reextract Document
+     * Re-run LLM extraction for an existing document.
+     * @param data The data for the request.
+     * @param data.id
+     * @param data.customerId
+     * @returns DocumentPublic Successful Response
+     * @throws ApiError
+     */
+    public static reextractDocument(data: DocumentsReextractDocumentData): CancelablePromise<DocumentsReextractDocumentResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/documents/{id}/reextract',
+            path: {
+                id: data.id
+            },
+            query: {
+                customer_id: data.customerId
             },
             errors: {
                 422: 'Validation Error'

@@ -3,7 +3,7 @@ from typing import Any
 from sqlmodel import Session, select
 
 from app.core.security import get_password_hash, verify_password
-from app.models import Document, DocumentCreate, User, UserCreate, UserUpdate
+from app.models import Customer, CustomerCreate, Document, DocumentCreate, User, UserCreate, UserUpdate
 
 
 def create_user(*, session: Session, user_create: UserCreate) -> User:
@@ -67,3 +67,16 @@ def create_document(
     session.commit()
     session.refresh(db_document)
     return db_document
+
+
+def create_customer(*, session: Session, customer_in: CustomerCreate) -> Customer:
+    db_customer = Customer.model_validate(customer_in)
+    session.add(db_customer)
+    session.commit()
+    session.refresh(db_customer)
+    return db_customer
+
+
+def get_customer_by_name(*, session: Session, name: str) -> Customer | None:
+    statement = select(Customer).where(Customer.name == name)
+    return session.exec(statement).first()

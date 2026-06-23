@@ -4,9 +4,11 @@ import { Suspense } from "react"
 
 import { type UserPublic, UsersService } from "@/client"
 import AddUser from "@/components/Admin/AddUser"
+import { CustomersAdminSection } from "@/components/Admin/customers/CustomersAdminSection"
 import { columns, type UserTableData } from "@/components/Admin/columns"
 import { DataTable } from "@/components/Common/DataTable"
 import PendingUsers from "@/components/Pending/PendingUsers"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import useAuth from "@/hooks/useAuth"
 import { pageTitle } from "@/lib/brand"
 
@@ -59,16 +61,38 @@ function UsersTable() {
 function Admin() {
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Users</h1>
-          <p className="text-muted-foreground">
-            Manage user accounts and permissions
-          </p>
-        </div>
-        <AddUser />
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Admin</h1>
+        <p className="text-muted-foreground">
+          Manage users and customer projects
+        </p>
       </div>
-      <UsersTable />
+
+      <Tabs defaultValue="users">
+        <TabsList>
+          <TabsTrigger value="users">Users</TabsTrigger>
+          <TabsTrigger value="customers">Customers</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="users" className="mt-6">
+          <div className="flex flex-col gap-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-semibold tracking-tight">Users</h2>
+                <p className="text-muted-foreground">
+                  Manage user accounts and permissions
+                </p>
+              </div>
+              <AddUser />
+            </div>
+            <UsersTable />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="customers" className="mt-6">
+          <CustomersAdminSection />
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

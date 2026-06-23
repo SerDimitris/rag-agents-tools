@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { LoadingButton } from "@/components/ui/loading-button"
 import useCustomToast from "@/hooks/useCustomToast"
+import { useCustomer } from "@/contexts/CustomerContext"
 import { uploadDocument } from "@/lib/uploadDocument"
 import { cn } from "@/lib/utils"
 
@@ -30,6 +31,7 @@ const UploadDocument = () => {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const queryClient = useQueryClient()
   const { showSuccessToast, showErrorToast } = useCustomToast()
+  const { customerId, selectedCustomer } = useCustomer()
 
   const resetForm = () => {
     setTitle("")
@@ -45,7 +47,10 @@ const UploadDocument = () => {
       if (!selectedFile) {
         throw new Error("Please select a file to upload")
       }
-      return uploadDocument(selectedFile, title.trim() || undefined)
+      if (!customerId) {
+        throw new Error("Please select a customer first")
+      }
+      return uploadDocument(selectedFile, customerId, title.trim() || undefined)
     },
     onSuccess: () => {
       showSuccessToast("Document uploaded. Extraction started.")
@@ -93,6 +98,8 @@ const UploadDocument = () => {
         <DialogHeader>
           <DialogTitle>Upload Document</DialogTitle>
           <DialogDescription>
+            Upload to{" "}
+            <strong>{selectedCustomer?.name ?? "selected customer"}</strong>.
             Drag and drop a file here or browse your computer. Supported
             formats: TXT, MD, PDF, CSV, JSON.
           </DialogDescription>
@@ -169,7 +176,7 @@ const UploadDocument = () => {
           </DialogClose>
           <LoadingButton
             loading={mutation.isPending}
-            disabled={!selectedFile}
+            disabled={!selectedFile || !customerId}
             onClick={() => mutation.mutate()}
           >
             Upload

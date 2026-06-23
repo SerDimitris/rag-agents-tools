@@ -9,6 +9,12 @@ def get_upload_dir() -> Path:
     return upload_dir
 
 
+def get_customer_upload_dir(customer_id: str) -> Path:
+    upload_dir = get_upload_dir() / customer_id
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    return upload_dir
+
+
 def resolve_upload_path(file_path: str) -> Path:
     upload_dir = get_upload_dir().resolve()
     resolved = (upload_dir / file_path.removeprefix("uploads/")).resolve()

@@ -2,6 +2,7 @@
 
 export type Body_documents_upload_document = {
     file: string;
+    customer_id: string;
     title?: (string | null);
 };
 
@@ -16,11 +17,13 @@ export type Body_login_login_access_token = {
 
 export type ChatMessageCreate = {
     content: string;
+    customer_id: string;
 };
 
 export type ChatMessagePublic = {
     content: string;
     id: string;
+    customer_id: string;
     role: ChatMessageRole;
     created_at?: (string | null);
 };
@@ -37,14 +40,41 @@ export type ChatResponse = {
     assistant_message: ChatMessagePublic;
 };
 
+export type CustomerCreate = {
+    name: string;
+    description?: (string | null);
+    is_active?: boolean;
+};
+
+export type CustomerPublic = {
+    name: string;
+    description?: (string | null);
+    is_active?: boolean;
+    id: string;
+    created_at?: (string | null);
+};
+
+export type CustomersPublic = {
+    data: Array<CustomerPublic>;
+    count: number;
+};
+
+export type CustomerUpdate = {
+    name?: (string | null);
+    description?: (string | null);
+    is_active?: (boolean | null);
+};
+
 export type DocumentCreate = {
     title: string;
     file_path: string;
+    customer_id: string;
 };
 
 export type DocumentPublic = {
     title: string;
     id: string;
+    customer_id: string;
     status: DocumentStatus;
     file_path: string;
     created_at?: (string | null);
@@ -156,6 +186,7 @@ export type ValidationError = {
 };
 
 export type ChatReadChatMessagesData = {
+    customerId: string;
     limit?: number;
     skip?: number;
 };
@@ -168,7 +199,41 @@ export type ChatSendChatMessageData = {
 
 export type ChatSendChatMessageResponse = (ChatResponse);
 
+export type CustomersReadCustomersData = {
+    includeInactive?: boolean;
+    limit?: number;
+    skip?: number;
+};
+
+export type CustomersReadCustomersResponse = (CustomersPublic);
+
+export type CustomersCreateCustomerData = {
+    requestBody: CustomerCreate;
+};
+
+export type CustomersCreateCustomerResponse = (CustomerPublic);
+
+export type CustomersReadCustomerData = {
+    id: string;
+};
+
+export type CustomersReadCustomerResponse = (CustomerPublic);
+
+export type CustomersUpdateCustomerData = {
+    id: string;
+    requestBody: CustomerUpdate;
+};
+
+export type CustomersUpdateCustomerResponse = (CustomerPublic);
+
+export type CustomersDeleteCustomerData = {
+    id: string;
+};
+
+export type CustomersDeleteCustomerResponse = (Message);
+
 export type DocumentsReadDocumentsData = {
+    customerId: string;
     limit?: number;
     skip?: number;
 };
@@ -188,12 +253,14 @@ export type DocumentsUploadDocumentData = {
 export type DocumentsUploadDocumentResponse = (DocumentPublic);
 
 export type DocumentsReadDocumentData = {
+    customerId: string;
     id: string;
 };
 
 export type DocumentsReadDocumentResponse = (DocumentPublic);
 
 export type DocumentsUpdateDocumentData = {
+    customerId: string;
     id: string;
     requestBody: DocumentUpdate;
 };
@@ -201,10 +268,18 @@ export type DocumentsUpdateDocumentData = {
 export type DocumentsUpdateDocumentResponse = (DocumentPublic);
 
 export type DocumentsDeleteDocumentData = {
+    customerId: string;
     id: string;
 };
 
 export type DocumentsDeleteDocumentResponse = (Message);
+
+export type DocumentsReextractDocumentData = {
+    customerId: string;
+    id: string;
+};
+
+export type DocumentsReextractDocumentResponse = (DocumentPublic);
 
 export type LoginLoginAccessTokenData = {
     formData: Body_login_login_access_token;

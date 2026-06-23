@@ -3,7 +3,7 @@ import { Trash2 } from "lucide-react"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 
-import { DocumentsService } from "@/client"
+import { CustomersService } from "@/client"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -19,38 +19,30 @@ import { LoadingButton } from "@/components/ui/loading-button"
 import useCustomToast from "@/hooks/useCustomToast"
 import { handleError } from "@/utils"
 
-interface DeleteDocumentProps {
+interface DeleteCustomerProps {
   id: string
-  customerId: string
   onSuccess: () => void
 }
 
-const DeleteDocument = ({ id, customerId, onSuccess }: DeleteDocumentProps) => {
+const DeleteCustomer = ({ id, onSuccess }: DeleteCustomerProps) => {
   const [isOpen, setIsOpen] = useState(false)
   const queryClient = useQueryClient()
   const { showSuccessToast, showErrorToast } = useCustomToast()
   const { handleSubmit } = useForm()
 
-  const deleteDocument = async (id: string) => {
-    await DocumentsService.deleteDocument({ id, customerId })
-  }
-
   const mutation = useMutation({
-    mutationFn: deleteDocument,
+    mutationFn: () => CustomersService.deleteCustomer({ id }),
     onSuccess: () => {
-      showSuccessToast("The document was deleted successfully")
+      showSuccessToast("Customer deleted successfully")
       setIsOpen(false)
       onSuccess()
     },
     onError: handleError.bind(showErrorToast),
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["documents"] })
+      queryClient.invalidateQueries({ queryKey: ["customers"] })
+      queryClient.invalidateQueries({ queryKey: ["admin-customers"] })
     },
   })
-
-  const onSubmit = async () => {
-    mutation.mutate(id)
-  }
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -60,18 +52,17 @@ const DeleteDocument = ({ id, customerId, onSuccess }: DeleteDocumentProps) => {
         onClick={() => setIsOpen(true)}
       >
         <Trash2 />
-        Delete Document
+        Delete Customer
       </DropdownMenuItem>
       <DialogContent className="sm:max-w-md">
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form onSubmit={handleSubmit(() => mutation.mutate())}>
           <DialogHeader>
-            <DialogTitle>Delete Document</DialogTitle>
+            <DialogTitle>Delete Customer</DialogTitle>
             <DialogDescription>
-              This document will be permanently deleted. Are you sure? You will
-              not be able to undo this action.
+              This customer will be permanently deleted. Customers with existing
+              documents cannot be deleted.
             </DialogDescription>
           </DialogHeader>
-
           <DialogFooter className="mt-4">
             <DialogClose asChild>
               <Button variant="outline" disabled={mutation.isPending}>
@@ -92,4 +83,4 @@ const DeleteDocument = ({ id, customerId, onSuccess }: DeleteDocumentProps) => {
   )
 }
 
-export default DeleteDocument
+export default DeleteCustomer

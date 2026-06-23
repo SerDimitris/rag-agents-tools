@@ -5,7 +5,7 @@ from pgvector.psycopg import register_vector
 
 from app import crud
 from app.core.config import settings
-from app.models import User, UserCreate
+from app.models import Customer, User, UserCreate
 
 engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
 
@@ -43,3 +43,10 @@ def init_db(session: Session) -> None:
             is_superuser=True,
         )
         user = crud.create_user(session=session, user_create=user_in)
+
+    demo_customers = ["Customer A", "Customer B"]
+    for name in demo_customers:
+        existing = session.exec(select(Customer).where(Customer.name == name)).first()
+        if not existing:
+            session.add(Customer(name=name, description=f"Demo customer: {name}"))
+    session.commit()

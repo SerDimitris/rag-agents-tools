@@ -7,6 +7,11 @@ export const Body_documents_upload_documentSchema = {
             contentMediaType: 'application/octet-stream',
             title: 'File'
         },
+        customer_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Customer Id'
+        },
         title: {
             anyOf: [
                 {
@@ -20,7 +25,7 @@ export const Body_documents_upload_documentSchema = {
         }
     },
     type: 'object',
-    required: ['file'],
+    required: ['file', 'customer_id'],
     title: 'Body_documents-upload_document'
 } as const;
 
@@ -88,10 +93,15 @@ export const ChatMessageCreateSchema = {
             maxLength: 10000,
             minLength: 1,
             title: 'Content'
+        },
+        customer_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Customer Id'
         }
     },
     type: 'object',
-    required: ['content'],
+    required: ['content', 'customer_id'],
     title: 'ChatMessageCreate'
 } as const;
 
@@ -107,6 +117,11 @@ export const ChatMessagePublicSchema = {
             type: 'string',
             format: 'uuid',
             title: 'Id'
+        },
+        customer_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Customer Id'
         },
         role: {
             '$ref': '#/components/schemas/ChatMessageRole'
@@ -125,7 +140,7 @@ export const ChatMessagePublicSchema = {
         }
     },
     type: 'object',
-    required: ['content', 'id', 'role'],
+    required: ['content', 'id', 'customer_id', 'role'],
     title: 'ChatMessagePublic'
 } as const;
 
@@ -168,6 +183,147 @@ export const ChatResponseSchema = {
     title: 'ChatResponse'
 } as const;
 
+export const CustomerCreateSchema = {
+    properties: {
+        name: {
+            type: 'string',
+            maxLength: 255,
+            minLength: 1,
+            title: 'Name'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 1000
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        },
+        is_active: {
+            type: 'boolean',
+            title: 'Is Active',
+            default: true
+        }
+    },
+    type: 'object',
+    required: ['name'],
+    title: 'CustomerCreate'
+} as const;
+
+export const CustomerPublicSchema = {
+    properties: {
+        name: {
+            type: 'string',
+            maxLength: 255,
+            minLength: 1,
+            title: 'Name'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 1000
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        },
+        is_active: {
+            type: 'boolean',
+            title: 'Is Active',
+            default: true
+        },
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        created_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Created At'
+        }
+    },
+    type: 'object',
+    required: ['name', 'id'],
+    title: 'CustomerPublic'
+} as const;
+
+export const CustomerUpdateSchema = {
+    properties: {
+        name: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255,
+                    minLength: 1
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Name'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 1000
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        },
+        is_active: {
+            anyOf: [
+                {
+                    type: 'boolean'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Is Active'
+        }
+    },
+    type: 'object',
+    title: 'CustomerUpdate'
+} as const;
+
+export const CustomersPublicSchema = {
+    properties: {
+        data: {
+            items: {
+                '$ref': '#/components/schemas/CustomerPublic'
+            },
+            type: 'array',
+            title: 'Data'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        }
+    },
+    type: 'object',
+    required: ['data', 'count'],
+    title: 'CustomersPublic'
+} as const;
+
 export const DocumentCreateSchema = {
     properties: {
         title: {
@@ -180,10 +336,15 @@ export const DocumentCreateSchema = {
             type: 'string',
             maxLength: 1024,
             title: 'File Path'
+        },
+        customer_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Customer Id'
         }
     },
     type: 'object',
-    required: ['title', 'file_path'],
+    required: ['title', 'file_path', 'customer_id'],
     title: 'DocumentCreate'
 } as const;
 
@@ -199,6 +360,11 @@ export const DocumentPublicSchema = {
             type: 'string',
             format: 'uuid',
             title: 'Id'
+        },
+        customer_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Customer Id'
         },
         status: {
             '$ref': '#/components/schemas/DocumentStatus'
@@ -233,7 +399,7 @@ export const DocumentPublicSchema = {
         }
     },
     type: 'object',
-    required: ['title', 'id', 'status', 'file_path'],
+    required: ['title', 'id', 'customer_id', 'status', 'file_path'],
     title: 'DocumentPublic'
 } as const;
 

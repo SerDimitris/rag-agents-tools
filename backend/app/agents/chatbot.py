@@ -24,10 +24,12 @@ Document knowledge:
 """
 
 
-def _fallback_reply(session: Session, user_message: str) -> str:
-    knowledge = retrieve_knowledge_context(session, user_message)
+def _fallback_reply(
+    session: Session, user_message: str, customer_id: uuid.UUID
+) -> str:
+    knowledge = retrieve_knowledge_context(session, user_message, customer_id)
     if knowledge.startswith("No extracted"):
-        knowledge = build_knowledge_context(session)
+        knowledge = build_knowledge_context(session, customer_id)
     if knowledge.startswith("No extracted"):
         return (
             "I do not have any extracted document content yet. "
@@ -42,11 +44,12 @@ def _fallback_reply(session: Session, user_message: str) -> str:
 
 
 def _build_chat_history(
-    session: Session, user_id: uuid.UUID
+    session: Session, user_id: uuid.UUID, customer_id: uuid.UUID
 ) -> list[dict[str, str]]:
     statement = (
         select(ChatMessage)
         .where(ChatMessage.user_id == user_id)
+        .where(ChatMessage.customer_id == customer_id)
         .order_by(col(ChatMessage.created_at).desc())
         .limit(settings.RAG_CHAT_HISTORY_MESSAGES)
     )
@@ -65,21 +68,26 @@ def _completion_content(client: OpenAI, messages: list[dict[str, str]]) -> str:
     return content.strip() if content else ""
 
 
-def generate_chat_reply(session: Session, user_id: uuid.UUID, user_message: str) -> str:
+def generate_chat_reply(
+    session: Session,
+    user_id: uuid.UUID,
+    customer_id: uuid.UUID,
+    user_message: str,
+) -> str:
     client = get_llm_client()
-    knowledge = retrieve_knowledge_context(session, user_message)
+    knowledge = retrieve_knowledge_context(session, user_message, customer_id)
     if knowledge.startswith("No extracted"):
-        knowledge = build_knowledge_context(session)
+        knowledge = build_knowledge_context(session, customer_id)
 
     if client is None:
-        return _fallback_reply(session, user_message)
+        return _fallback_reply(session, user_message, customer_id)
 
     system_message = {
         "role": "system",
         "content": CHAT_SYSTEM_PROMPT.format(knowledge=knowledge),
     }
     user_turn = {"role": "user", "content": user_message}
-    history = _build_chat_history(session, user_id)
+    history = _build_chat_history(session, user_id, customer_id)
 
     attempts: list[list[dict[str, str]]] = [
         [system_message, user_turn],

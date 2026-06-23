@@ -1,21 +1,21 @@
 import { EllipsisVertical } from "lucide-react"
 import { useState } from "react"
 
-import type { DocumentPublic } from "@/client"
+import type { CustomerPublic } from "@/client"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import DeleteDocument from "./DeleteDocument"
-import EditDocument from "./EditDocument"
+import DeleteCustomer from "./DeleteCustomer"
+import EditCustomer from "./EditCustomer"
 
-interface DocumentActionsMenuProps {
-  document: DocumentPublic
+interface CustomerActionsMenuProps {
+  customer: CustomerPublic
 }
 
-export const DocumentActionsMenu = ({ document }: DocumentActionsMenuProps) => {
+export const CustomerActionsMenu = ({ customer }: CustomerActionsMenuProps) => {
   const [open, setOpen] = useState(false)
 
   return (
@@ -26,12 +26,8 @@ export const DocumentActionsMenu = ({ document }: DocumentActionsMenuProps) => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <EditDocument document={document} onSuccess={() => setOpen(false)} />
-        <DeleteDocument
-          id={document.id}
-          customerId={document.customer_id}
-          onSuccess={() => setOpen(false)}
-        />
+        <EditCustomer customer={customer} onSuccess={() => setOpen(false)} />
+        <DeleteCustomer id={customer.id} onSuccess={() => setOpen(false)} />
       </DropdownMenuContent>
     </DropdownMenu>
   )

@@ -85,6 +85,40 @@ class UsersPublic(SQLModel):
     count: int
 
 
+class CustomerBase(SQLModel):
+    name: str = Field(min_length=1, max_length=255)
+    description: str | None = Field(default=None, max_length=1000)
+    is_active: bool = True
+
+
+class CustomerCreate(CustomerBase):
+    pass
+
+
+class CustomerUpdate(SQLModel):
+    name: str | None = Field(default=None, min_length=1, max_length=255)
+    description: str | None = Field(default=None, max_length=1000)
+    is_active: bool | None = None
+
+
+class Customer(CustomerBase, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    created_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+
+
+class CustomerPublic(CustomerBase):
+    id: uuid.UUID
+    created_at: datetime | None = None
+
+
+class CustomersPublic(SQLModel):
+    data: list[CustomerPublic]
+    count: int
+
+
 # Shared properties
 class DocumentBase(SQLModel):
     title: str = Field(min_length=1, max_length=255)
@@ -93,6 +127,7 @@ class DocumentBase(SQLModel):
 # Properties to receive on document creation
 class DocumentCreate(DocumentBase):
     file_path: str = Field(max_length=1024)
+    customer_id: uuid.UUID
 
 
 # Properties to receive on document update
@@ -106,6 +141,9 @@ class DocumentUpdate(SQLModel):
 # Database model, database table inferred from class name
 class Document(DocumentBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    customer_id: uuid.UUID = Field(
+        foreign_key="customer.id", nullable=False, index=True, ondelete="RESTRICT"
+    )
     status: DocumentStatus = Field(default=DocumentStatus.pending)
     file_path: str = Field(max_length=1024)
     created_at: datetime | None = Field(
@@ -121,6 +159,7 @@ class Document(DocumentBase, table=True):
 # Properties to return via API, id is always required
 class DocumentPublic(DocumentBase):
     id: uuid.UUID
+    customer_id: uuid.UUID
     status: DocumentStatus
     file_path: str
     created_at: datetime | None = None
@@ -156,13 +195,16 @@ class ChatMessageBase(SQLModel):
 
 
 class ChatMessageCreate(ChatMessageBase):
-    pass
+    customer_id: uuid.UUID
 
 
 class ChatMessage(ChatMessageBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     user_id: uuid.UUID = Field(
         foreign_key="user.id", nullable=False, ondelete="CASCADE"
+    )
+    customer_id: uuid.UUID = Field(
+        foreign_key="customer.id", nullable=False, index=True, ondelete="CASCADE"
     )
     role: ChatMessageRole
     created_at: datetime | None = Field(
@@ -173,6 +215,7 @@ class ChatMessage(ChatMessageBase, table=True):
 
 class ChatMessagePublic(ChatMessageBase):
     id: uuid.UUID
+    customer_id: uuid.UUID
     role: ChatMessageRole
     created_at: datetime | None = None
 

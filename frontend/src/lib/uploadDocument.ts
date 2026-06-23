@@ -3,10 +3,12 @@ import type { DocumentPublic } from "@/client"
 
 export async function uploadDocument(
   file: File,
+  customerId: string,
   title?: string,
 ): Promise<DocumentPublic> {
   const formData = new FormData()
   formData.append("file", file)
+  formData.append("customer_id", customerId)
   if (title) {
     formData.append("title", title)
   }

@@ -5,12 +5,9 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 
-import {
-  type DocumentPublic,
-  type DocumentStatus,
-  DocumentsService,
-} from "@/client"
+import { type CustomerPublic, CustomersService } from "@/client"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   Dialog,
   DialogClose,
@@ -31,73 +28,57 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { LoadingButton } from "@/components/ui/loading-button"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import useCustomToast from "@/hooks/useCustomToast"
 import { handleError } from "@/utils"
 
-const statusOptions: DocumentStatus[] = [
-  "pending",
-  "processing",
-  "completed",
-  "failed",
-]
-
 const formSchema = z.object({
-  title: z.string().min(1, { message: "Title is required" }),
-  file_path: z.string().min(1, { message: "File path is required" }),
-  status: z.enum(["pending", "processing", "completed", "failed"]),
+  name: z.string().min(1, { message: "Name is required" }),
+  description: z.string().optional(),
+  is_active: z.boolean(),
 })
 
 type FormData = z.infer<typeof formSchema>
 
-interface EditDocumentProps {
-  document: DocumentPublic
+interface EditCustomerProps {
+  customer: CustomerPublic
   onSuccess: () => void
 }
 
-const EditDocument = ({ document, onSuccess }: EditDocumentProps) => {
+const EditCustomer = ({ customer, onSuccess }: EditCustomerProps) => {
   const [isOpen, setIsOpen] = useState(false)
   const queryClient = useQueryClient()
   const { showSuccessToast, showErrorToast } = useCustomToast()
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
-    mode: "onBlur",
-    criteriaMode: "all",
     defaultValues: {
-      title: document.title,
-      file_path: document.file_path,
-      status: document.status,
+      name: customer.name,
+      description: customer.description ?? "",
+      is_active: customer.is_active,
     },
   })
 
   const mutation = useMutation({
     mutationFn: (data: FormData) =>
-      DocumentsService.updateDocument({
-        id: document.id,
-        customerId: document.customer_id,
-        requestBody: data,
+      CustomersService.updateCustomer({
+        id: customer.id,
+        requestBody: {
+          name: data.name,
+          description: data.description || null,
+          is_active: data.is_active,
+        },
       }),
     onSuccess: () => {
-      showSuccessToast("Document updated successfully")
+      showSuccessToast("Customer updated successfully")
       setIsOpen(false)
       onSuccess()
     },
     onError: handleError.bind(showErrorToast),
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["documents"] })
+      queryClient.invalidateQueries({ queryKey: ["customers"] })
+      queryClient.invalidateQueries({ queryKey: ["admin-customers"] })
     },
   })
-
-  const onSubmit = (data: FormData) => {
-    mutation.mutate(data)
-  }
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -106,83 +87,58 @@ const EditDocument = ({ document, onSuccess }: EditDocumentProps) => {
         onClick={() => setIsOpen(true)}
       >
         <Pencil />
-        Edit Document
+        Edit Customer
       </DropdownMenuItem>
       <DialogContent className="sm:max-w-md">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
+          <form onSubmit={form.handleSubmit((data) => mutation.mutate(data))}>
             <DialogHeader>
-              <DialogTitle>Edit Document</DialogTitle>
-              <DialogDescription>
-                Update the document details below.
-              </DialogDescription>
+              <DialogTitle>Edit Customer</DialogTitle>
+              <DialogDescription>Update customer details.</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <FormField
                 control={form.control}
-                name="title"
+                name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>
-                      Title <span className="text-destructive">*</span>
-                    </FormLabel>
+                    <FormLabel>Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="Title" type="text" {...field} />
+                      <Input {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
-                name="file_path"
+                name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>
-                      File Path <span className="text-destructive">*</span>
-                    </FormLabel>
+                    <FormLabel>Description</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="/uploads/report.pdf"
-                        type="text"
-                        {...field}
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="is_active"
+                render={({ field }) => (
+                  <FormItem className="flex items-center gap-2 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
                       />
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Status</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select status" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {statusOptions.map((status) => (
-                          <SelectItem key={status} value={status}>
-                            {status.charAt(0).toUpperCase() + status.slice(1)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
+                    <FormLabel className="font-normal">Active</FormLabel>
                   </FormItem>
                 )}
               />
             </div>
-
             <DialogFooter>
               <DialogClose asChild>
                 <Button variant="outline" disabled={mutation.isPending}>
@@ -200,4 +156,4 @@ const EditDocument = ({ document, onSuccess }: EditDocumentProps) => {
   )
 }
 
-export default EditDocument
+export default EditCustomer

@@ -61,7 +61,11 @@ def _keyword_score(query: str, content: str) -> float:
 
 
 def _search_by_embedding(
-    session: Session, query_embedding: list[float], *, limit: int
+    session: Session,
+    query_embedding: list[float],
+    customer_id: uuid.UUID,
+    *,
+    limit: int,
 ) -> list[RetrievedChunk]:
     distance_expr = DocumentChunk.embedding.cosine_distance(query_embedding)
     statement = (
@@ -71,6 +75,7 @@ def _search_by_embedding(
             distance_expr.label("distance"),
         )
         .join(Document, col(Document.id) == col(DocumentChunk.document_id))
+        .where(Document.customer_id == customer_id)
         .where(Document.status == DocumentStatus.completed)
         .where(col(DocumentChunk.embedding).is_not(None))
         .order_by(distance_expr)
@@ -92,11 +97,12 @@ def _search_by_embedding(
 
 
 def _search_by_keywords(
-    session: Session, query: str, *, limit: int
+    session: Session, query: str, customer_id: uuid.UUID, *, limit: int
 ) -> list[RetrievedChunk]:
     statement = (
         select(DocumentChunk, Document.title)
         .join(Document, col(Document.id) == col(DocumentChunk.document_id))
+        .where(Document.customer_id == customer_id)
         .where(Document.status == DocumentStatus.completed)
     )
     rows = session.exec(statement).all()
@@ -119,7 +125,11 @@ def _search_by_keywords(
 
 
 def retrieve_relevant_chunks(
-    session: Session, query: str, *, top_k: int | None = None
+    session: Session,
+    query: str,
+    customer_id: uuid.UUID,
+    *,
+    top_k: int | None = None,
 ) -> list[RetrievedChunk]:
     top_k = top_k or settings.RAG_TOP_K
     expanded_queries = expand_query(query)
@@ -136,7 +146,7 @@ def retrieve_relevant_chunks(
             if query_embedding is None:
                 continue
             for result in _search_by_embedding(
-                session, query_embedding, limit=per_query_limit
+                session, query_embedding, customer_id, limit=per_query_limit
             ):
                 existing = merged.get(result.chunk_id)
                 if existing is None or result.score > existing.score:
@@ -144,7 +154,9 @@ def retrieve_relevant_chunks(
 
     if not merged:
         for expanded_query in expanded_queries:
-            for result in _search_by_keywords(session, expanded_query, limit=top_k):
+            for result in _search_by_keywords(
+                session, expanded_query, customer_id, limit=top_k
+            ):
                 existing = merged.get(result.chunk_id)
                 if existing is None or result.score > existing.score:
                     merged[result.chunk_id] = result
@@ -163,6 +175,8 @@ def format_retrieved_context(chunks: list[RetrievedChunk]) -> str:
     return "\n\n".join(sections)
 
 
-def retrieve_knowledge_context(session: Session, query: str) -> str:
-    chunks = retrieve_relevant_chunks(session, query)
+def retrieve_knowledge_context(
+    session: Session, query: str, customer_id: uuid.UUID
+) -> str:
+    chunks = retrieve_relevant_chunks(session, query, customer_id)
     return format_retrieved_context(chunks)

@@ -13,7 +13,7 @@ test("Documents page is accessible and shows correct title", async ({
   await page.goto("/documents")
   await expect(page.getByRole("heading", { name: "Documents" })).toBeVisible()
   await expect(
-    page.getByText("Upload files and track extraction status"),
+    page.getByText("Upload files and track extraction status for the selected customer"),
   ).toBeVisible()
 })
 
@@ -48,14 +48,14 @@ test.describe("Chat page", () => {
     await page.goto("/chat")
     await expect(page.getByRole("heading", { name: "Chat" })).toBeVisible()
     await expect(
-      page.getByPlaceholder("Ask a question about your documents..."),
+      page.getByPlaceholder(/Ask a question about .+'s documents\.\.\./),
     ).toBeVisible()
   })
 
   test("User can send a chat message", async ({ page }) => {
     await page.goto("/chat")
     await page
-      .getByPlaceholder("Ask a question about your documents...")
+      .getByPlaceholder(/Ask a question about .+'s documents\.\.\./)
       .fill("What documents are available?")
     await page.getByRole("button", { name: "Send" }).click()
     await expect(page.getByText("What documents are available?")).toBeVisible()

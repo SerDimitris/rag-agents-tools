@@ -8,14 +8,20 @@ import { DataTable } from "@/components/Common/DataTable"
 import { getDocumentColumns } from "@/components/Documents/columns"
 import UploadDocument from "@/components/Documents/UploadDocument"
 import PendingDocuments from "@/components/Pending/PendingDocuments"
+import { useCustomer } from "@/contexts/CustomerContext"
 import useAuth from "@/hooks/useAuth"
 import { canManageDocuments } from "@/lib/roles"
 import { pageTitle } from "@/lib/brand"
 
-function getDocumentsQueryOptions() {
+function getDocumentsQueryOptions(customerId: string) {
   return {
-    queryFn: () => DocumentsService.readDocuments({ skip: 0, limit: 100 }),
-    queryKey: ["documents"],
+    queryFn: () =>
+      DocumentsService.readDocuments({
+        customerId,
+        skip: 0,
+        limit: 100,
+      }),
+    queryKey: ["documents", customerId],
     refetchInterval: 5000,
   }
 }
@@ -33,8 +39,18 @@ export const Route = createFileRoute("/_layout/documents")({
 
 function DocumentsTableContent() {
   const { user } = useAuth()
+  const { customerId, selectedCustomer } = useCustomer()
   const canManage = canManageDocuments(user)
-  const { data: documents } = useSuspenseQuery(getDocumentsQueryOptions())
+
+  if (!customerId) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <p className="text-muted-foreground">Select a customer to view documents.</p>
+      </div>
+    )
+  }
+
+  const { data: documents } = useSuspenseQuery(getDocumentsQueryOptions(customerId))
 
   if (documents.data.length === 0) {
     return (
@@ -44,7 +60,8 @@ function DocumentsTableContent() {
         </div>
         <h3 className="text-lg font-semibold">No documents yet</h3>
         <p className="text-muted-foreground">
-          Upload a document to start extraction
+          Upload a document for {selectedCustomer?.name ?? "this customer"} to start
+          extraction
         </p>
       </div>
     )
@@ -59,6 +76,12 @@ function DocumentsTableContent() {
 }
 
 function DocumentsTable() {
+  const { customerId } = useCustomer()
+
+  if (!customerId) {
+    return null
+  }
+
   return (
     <Suspense fallback={<PendingDocuments />}>
       <DocumentsTableContent />
@@ -73,7 +96,7 @@ function Documents() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Documents</h1>
           <p className="text-muted-foreground">
-            Upload files and track extraction status
+            Upload files and track extraction status for the selected customer
           </p>
         </div>
         <UploadDocument />

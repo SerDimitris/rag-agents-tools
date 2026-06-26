@@ -1,5 +1,3 @@
-from io import BytesIO
-
 from fastapi.testclient import TestClient
 from sqlmodel import Session
 
@@ -24,7 +22,68 @@ def test_send_chat_message(
     assert content["user_message"]["role"] == "user"
     assert content["assistant_message"]["role"] == "assistant"
     assert content["user_message"]["customer_id"] == str(customer.id)
-    assert "document" in content["assistant_message"]["content"].lower()
+    assert content["assistant_message"]["reply_to_id"] == content["user_message"]["id"]
+    assistant_text = content["assistant_message"]["content"].lower()
+    assert "document" in assistant_text or "έγγραφ" in assistant_text
+
+
+def test_submit_message_feedback(
+    client: TestClient, superuser_token_headers: dict[str, str], db: Session
+) -> None:
+    customer = create_random_customer(db)
+    chat_response = client.post(
+        f"{settings.API_V1_STR}/chat/messages",
+        headers=superuser_token_headers,
+        json={"content": "Hello", "customer_id": str(customer.id)},
+    )
+    assistant_message_id = chat_response.json()["assistant_message"]["id"]
+
+    response = client.post(
+        f"{settings.API_V1_STR}/chat/messages/{assistant_message_id}/feedback",
+        headers=superuser_token_headers,
+        json={"rating": "positive"},
+    )
+    assert response.status_code == 200
+    assert response.json()["rating"] == "positive"
+    assert response.json()["message_id"] == assistant_message_id
+
+    messages_response = client.get(
+        f"{settings.API_V1_STR}/chat/messages",
+        headers=superuser_token_headers,
+        params={"customer_id": str(customer.id)},
+    )
+    assistant_messages = [
+        item for item in messages_response.json()["data"] if item["role"] == "assistant"
+    ]
+    assert assistant_messages[-1]["feedback_rating"] == "positive"
+
+    update_response = client.post(
+        f"{settings.API_V1_STR}/chat/messages/{assistant_message_id}/feedback",
+        headers=superuser_token_headers,
+        json={"rating": "negative", "reason": "wrong"},
+    )
+    assert update_response.status_code == 200
+    assert update_response.json()["rating"] == "negative"
+    assert update_response.json()["reason"] == "wrong"
+
+
+def test_feedback_rejected_for_user_messages(
+    client: TestClient, superuser_token_headers: dict[str, str], db: Session
+) -> None:
+    customer = create_random_customer(db)
+    chat_response = client.post(
+        f"{settings.API_V1_STR}/chat/messages",
+        headers=superuser_token_headers,
+        json={"content": "Hello", "customer_id": str(customer.id)},
+    )
+    user_message_id = chat_response.json()["user_message"]["id"]
+
+    response = client.post(
+        f"{settings.API_V1_STR}/chat/messages/{user_message_id}/feedback",
+        headers=superuser_token_headers,
+        json={"rating": "positive"},
+    )
+    assert response.status_code == 400
 
 
 def test_read_chat_messages(

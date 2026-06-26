@@ -11,13 +11,17 @@ def create_embeddings(texts: list[str]) -> list[list[float] | None]:
         return [None] * len(texts)
 
     try:
-        kwargs: dict[str, object] = {
-            "model": settings.OPENAI_EMBEDDING_MODEL,
-            "input": texts,
-        }
         if settings.use_openai_embedding_dimensions:
-            kwargs["dimensions"] = settings.EMBEDDING_DIMENSIONS
-        response = client.embeddings.create(**kwargs)  # type: ignore[arg-type]
+            response = client.embeddings.create(
+                model=settings.OPENAI_EMBEDDING_MODEL,
+                input=texts,
+                dimensions=settings.EMBEDDING_DIMENSIONS,
+            )
+        else:
+            response = client.embeddings.create(
+                model=settings.OPENAI_EMBEDDING_MODEL,
+                input=texts,
+            )
     except Exception:  # noqa: BLE001
         return [None] * len(texts)
 

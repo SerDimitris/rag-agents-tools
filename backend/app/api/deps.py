@@ -1,7 +1,6 @@
+import uuid
 from collections.abc import Generator
 from typing import Annotated
-
-import uuid
 
 import jwt
 from fastapi import Depends, HTTPException, status
@@ -66,6 +65,9 @@ def get_current_moderator(current_user: CurrentUser) -> User:
     if current_user.is_superuser or current_user.role == UserRole.moderator:
         return current_user
     raise HTTPException(status_code=403, detail="Not enough permissions")
+
+
+CurrentModerator = Annotated[User, Depends(get_current_moderator)]
 
 
 def get_customer_or_404(session: Session, customer_id: uuid.UUID) -> Customer:

@@ -22,7 +22,7 @@ router = APIRouter(prefix="/customers", tags=["customers"])
 @router.get("/", response_model=CustomersPublic)
 def read_customers(
     session: SessionDep,
-    current_user: CurrentUser,
+    _current_user: CurrentUser,
     skip: int = 0,
     limit: int = 100,
     include_inactive: bool = False,
@@ -39,7 +39,9 @@ def read_customers(
         count_statement = count_statement.where(*filters)
     count = session.exec(count_statement).one()
 
-    statement = select(Customer).order_by(col(Customer.name).asc()).offset(skip).limit(limit)
+    statement = (
+        select(Customer).order_by(col(Customer.name).asc()).offset(skip).limit(limit)
+    )
     if filters:
         statement = statement.where(*filters)
     customers = session.exec(statement).all()
@@ -50,7 +52,11 @@ def read_customers(
     )
 
 
-@router.post("/", response_model=CustomerPublic, dependencies=[Depends(get_current_active_superuser)])
+@router.post(
+    "/",
+    response_model=CustomerPublic,
+    dependencies=[Depends(get_current_active_superuser)],
+)
 def create_customer(
     *,
     session: SessionDep,
@@ -61,13 +67,15 @@ def create_customer(
     """
     existing = crud.get_customer_by_name(session=session, name=customer_in.name)
     if existing:
-        raise HTTPException(status_code=400, detail="Customer with this name already exists")
+        raise HTTPException(
+            status_code=400, detail="Customer with this name already exists"
+        )
     return crud.create_customer(session=session, customer_in=customer_in)
 
 
 @router.get("/{id}", response_model=CustomerPublic)
 def read_customer(
-    session: SessionDep, current_user: CurrentUser, id: uuid.UUID
+    session: SessionDep, _current_user: CurrentUser, id: uuid.UUID
 ) -> Any:
     """
     Get customer by ID.
@@ -78,7 +86,11 @@ def read_customer(
     return customer
 
 
-@router.put("/{id}", response_model=CustomerPublic, dependencies=[Depends(get_current_active_superuser)])
+@router.put(
+    "/{id}",
+    response_model=CustomerPublic,
+    dependencies=[Depends(get_current_active_superuser)],
+)
 def update_customer(
     *,
     session: SessionDep,

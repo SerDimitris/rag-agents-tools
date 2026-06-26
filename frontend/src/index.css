@@ -6,7 +6,8 @@
 @theme inline {
   --font-retro-display: "Press Start 2P", monospace;
   --font-retro-body: "Courier Prime", "Courier New", monospace;
-  --font-retro-brand: "Courier Prime", "Noto Sans Mono", "Courier New", monospace;
+  --font-retro-brand:
+    "Courier Prime", "Noto Sans Mono", "Courier New", monospace;
   --radius-sm: 0px;
   --radius-md: 0px;
   --radius-lg: 0px;
@@ -268,8 +269,8 @@
 
   [data-sidebar="menu-button"].retro-nav-item:hover,
   [data-sidebar="menu-button"].retro-nav-item[data-active="true"]:hover {
-    background: oklch(0.78 0.14 195 / 8%) !important;
-    color: oklch(0.78 0.14 195) !important;
+    background: oklch(0.78 0.14 195 / 8%);
+    color: oklch(0.78 0.14 195);
   }
 
   [data-sidebar="menu-button"].retro-nav-item::before {
@@ -284,7 +285,7 @@
 
   [data-sidebar="menu-button"].retro-nav-item:hover {
     border-color: oklch(0.78 0.14 195 / 35%);
-    background: oklch(0.78 0.14 195 / 8%) !important;
+    background: oklch(0.78 0.14 195 / 8%);
     box-shadow:
       inset 4px 0 0 oklch(0.78 0.14 195 / 70%),
       2px 2px 0 0 oklch(0.62 0.22 330 / 25%);
@@ -300,8 +301,8 @@
   [data-sidebar="menu-button"].retro-nav-item-active:hover,
   [data-sidebar="menu-button"].retro-nav-item-active[data-active="true"]:hover {
     border-color: oklch(0.78 0.14 195 / 55%);
-    background: oklch(0.78 0.14 195 / 12%) !important;
-    color: oklch(0.78 0.14 195) !important;
+    background: oklch(0.78 0.14 195 / 12%);
+    color: oklch(0.78 0.14 195);
     box-shadow:
       inset 4px 0 0 oklch(0.78 0.14 195),
       inset -4px 0 0 oklch(0.62 0.22 330 / 50%),
@@ -318,19 +319,25 @@
     text-shadow: 0 0 6px oklch(0.78 0.14 195 / 80%);
   }
 
-  .group[data-collapsible="icon"] [data-sidebar="menu-button"].retro-nav-item::before {
+  .group[data-collapsible="icon"]
+    [data-sidebar="menu-button"].retro-nav-item::before {
     display: none;
   }
 
   .group[data-collapsible="icon"] [data-sidebar="menu-button"].retro-nav-item,
-  .group[data-collapsible="icon"] [data-sidebar="menu-button"].retro-nav-item:hover,
-  .group[data-collapsible="icon"] [data-sidebar="menu-button"].retro-nav-item-active,
-  .group[data-collapsible="icon"] [data-sidebar="menu-button"].retro-nav-item-active:hover {
+  .group[data-collapsible="icon"]
+    [data-sidebar="menu-button"].retro-nav-item:hover,
+  .group[data-collapsible="icon"]
+    [data-sidebar="menu-button"].retro-nav-item-active,
+  .group[data-collapsible="icon"]
+    [data-sidebar="menu-button"].retro-nav-item-active:hover {
     padding-left: 0.5rem;
   }
 
-  .group[data-collapsible="icon"] [data-sidebar="menu-button"].retro-nav-item-active,
-  .group[data-collapsible="icon"] [data-sidebar="menu-button"].retro-nav-item-active:hover {
+  .group[data-collapsible="icon"]
+    [data-sidebar="menu-button"].retro-nav-item-active,
+  .group[data-collapsible="icon"]
+    [data-sidebar="menu-button"].retro-nav-item-active:hover {
     border-color: oklch(0.78 0.14 195 / 55%);
     box-shadow: inset 0 -3px 0 0 oklch(0.78 0.14 195);
   }

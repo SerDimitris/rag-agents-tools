@@ -1,6 +1,5 @@
-import type { ColumnDef } from "@tanstack/react-table"
-
 import type { CustomerPublic } from "@rag-agent/shared"
+import type { ColumnDef } from "@tanstack/react-table"
 import { cn } from "@/lib/utils"
 import { CustomerActionsMenu } from "./CustomerActionsMenu"
 
@@ -8,9 +7,7 @@ export const columns: ColumnDef<CustomerPublic>[] = [
   {
     accessorKey: "name",
     header: "Name",
-    cell: ({ row }) => (
-      <span className="font-medium">{row.original.name}</span>
-    ),
+    cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
   },
   {
     accessorKey: "description",
@@ -18,6 +15,15 @@ export const columns: ColumnDef<CustomerPublic>[] = [
     cell: ({ row }) => (
       <span className="text-muted-foreground">
         {row.original.description || "—"}
+      </span>
+    ),
+  },
+  {
+    accessorKey: "sector",
+    header: "Sector",
+    cell: ({ row }) => (
+      <span className="text-muted-foreground capitalize">
+        {row.original.sector ?? "general"}
       </span>
     ),
   },

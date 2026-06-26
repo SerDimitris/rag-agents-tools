@@ -126,6 +126,39 @@ export const ChatMessagePublicSchema = {
         role: {
             '$ref': '#/components/schemas/ChatMessageRole'
         },
+        reply_to_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Reply To Id'
+        },
+        source_titles: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Source Titles'
+        },
+        response_kind: {
+            '$ref': '#/components/schemas/ChatResponseKind',
+            default: 'answer'
+        },
+        feedback_rating: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/FeedbackRating'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        },
         created_at: {
             anyOf: [
                 {
@@ -148,6 +181,12 @@ export const ChatMessageRoleSchema = {
     type: 'string',
     enum: ['user', 'assistant'],
     title: 'ChatMessageRole'
+} as const;
+
+export const ChatResponseKindSchema = {
+    type: 'string',
+    enum: ['answer', 'clarification'],
+    title: 'ChatResponseKind'
 } as const;
 
 export const ChatMessagesPublicSchema = {
@@ -203,6 +242,10 @@ export const CustomerCreateSchema = {
             ],
             title: 'Description'
         },
+        sector: {
+            '$ref': '#/components/schemas/CustomerSector',
+            default: 'general'
+        },
         is_active: {
             type: 'boolean',
             title: 'Is Active',
@@ -234,6 +277,10 @@ export const CustomerPublicSchema = {
             ],
             title: 'Description'
         },
+        sector: {
+            '$ref': '#/components/schemas/CustomerSector',
+            default: 'general'
+        },
         is_active: {
             type: 'boolean',
             title: 'Is Active',
@@ -262,6 +309,12 @@ export const CustomerPublicSchema = {
     title: 'CustomerPublic'
 } as const;
 
+export const CustomerSectorSchema = {
+    type: 'string',
+    enum: ['banking', 'telecom', 'energy', 'general'],
+    title: 'CustomerSector'
+} as const;
+
 export const CustomerUpdateSchema = {
     properties: {
         name: {
@@ -288,6 +341,16 @@ export const CustomerUpdateSchema = {
                 }
             ],
             title: 'Description'
+        },
+        sector: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/CustomerSector'
+                },
+                {
+                    type: 'null'
+                }
+            ]
         },
         is_active: {
             anyOf: [
@@ -482,6 +545,18 @@ export const DocumentsPublicSchema = {
     title: 'DocumentsPublic'
 } as const;
 
+export const FeedbackRatingSchema = {
+    type: 'string',
+    enum: ['positive', 'negative'],
+    title: 'FeedbackRating'
+} as const;
+
+export const FeedbackReasonSchema = {
+    type: 'string',
+    enum: ['wrong', 'incomplete', 'outdated', 'off_topic', 'other'],
+    title: 'FeedbackReason'
+} as const;
+
 export const HTTPValidationErrorSchema = {
     properties: {
         detail: {
@@ -506,6 +581,93 @@ export const MessageSchema = {
     type: 'object',
     required: ['message'],
     title: 'Message'
+} as const;
+
+export const MessageFeedbackCreateSchema = {
+    properties: {
+        rating: {
+            '$ref': '#/components/schemas/FeedbackRating'
+        },
+        reason: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/FeedbackReason'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        },
+        comment: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 2000
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Comment'
+        }
+    },
+    type: 'object',
+    required: ['rating'],
+    title: 'MessageFeedbackCreate'
+} as const;
+
+export const MessageFeedbackPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        message_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Message Id'
+        },
+        rating: {
+            '$ref': '#/components/schemas/FeedbackRating'
+        },
+        reason: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/FeedbackReason'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        },
+        comment: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Comment'
+        },
+        created_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Created At'
+        }
+    },
+    type: 'object',
+    required: ['id', 'message_id', 'rating'],
+    title: 'MessageFeedbackPublic'
 } as const;
 
 export const NewPasswordSchema = {

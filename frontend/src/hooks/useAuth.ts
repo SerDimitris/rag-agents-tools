@@ -1,12 +1,12 @@
-import { useMutation } from "@tanstack/react-query"
-import { useNavigate } from "@tanstack/react-router"
 import {
   ACCESS_TOKEN_KEY,
   type ApiError,
   type UserRegister,
-  useAuthSession,
   UsersService,
+  useAuthSession,
 } from "@rag-agent/shared"
+import { useMutation } from "@tanstack/react-query"
+import { useNavigate } from "@tanstack/react-router"
 import { handleError } from "@/utils"
 import useCustomToast from "./useCustomToast"
 

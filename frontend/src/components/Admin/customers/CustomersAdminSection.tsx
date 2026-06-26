@@ -1,7 +1,6 @@
+import { CustomersService } from "@rag-agent/shared"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { Suspense } from "react"
-
-import { CustomersService } from "@rag-agent/shared"
 import AddCustomer from "@/components/Admin/customers/AddCustomer"
 import { columns } from "@/components/Admin/customers/columns"
 import { DataTable } from "@/components/Common/DataTable"

@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod"
+import { LoginService } from "@rag-agent/shared"
 import { useMutation } from "@tanstack/react-query"
 import {
   createFileRoute,
@@ -8,8 +9,6 @@ import {
 } from "@tanstack/react-router"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-
-import { LoginService } from "@rag-agent/shared"
 import { AuthLayout } from "@/components/Common/AuthLayout"
 import {
   Form,
@@ -23,8 +22,8 @@ import { LoadingButton } from "@/components/ui/loading-button"
 import { PasswordInput } from "@/components/ui/password-input"
 import { isLoggedIn } from "@/hooks/useAuth"
 import useCustomToast from "@/hooks/useCustomToast"
-import { handleError } from "@/utils"
 import { pageTitle } from "@/lib/brand"
+import { handleError } from "@/utils"
 
 const searchSchema = z.object({
   token: z.string().catch(""),

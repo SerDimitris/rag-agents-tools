@@ -8,7 +8,10 @@ const STARS = Array.from({ length: 72 }, (_, index) => ({
 
 export function RetroStarfield() {
   return (
-    <div className="retro-starfield pointer-events-none absolute inset-0" aria-hidden>
+    <div
+      className="retro-starfield pointer-events-none absolute inset-0"
+      aria-hidden
+    >
       {STARS.map((star, index) => (
         <span
           key={index}

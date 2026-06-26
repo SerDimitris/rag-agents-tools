@@ -45,9 +45,7 @@ class Settings(BaseSettings):
     @computed_field  # type: ignore[prop-decorator]
     @property
     def all_cors_origins(self) -> list[str]:
-        origins = [
-            str(origin).rstrip("/") for origin in self.BACKEND_CORS_ORIGINS
-        ]
+        origins = [str(origin).rstrip("/") for origin in self.BACKEND_CORS_ORIGINS]
         origins.append(self.FRONTEND_HOST.rstrip("/"))
 
         if self.ENVIRONMENT == "local":
@@ -118,6 +116,8 @@ class Settings(BaseSettings):
     RAG_LLM_MAX_TOKENS: int = 1024
     RAG_CHAT_HISTORY_MESSAGES: int = 6
     RAG_SHORT_QUERY_WORDS: int = 4
+    RAG_MIN_SCORE_FOR_ANSWER: float = 0.55
+    RAG_MULTI_DOC_SCORE_SPREAD: float = 0.05
     LLM_BASE_URL: str | None = None
     UPLOAD_DIR: str = "uploads"
 
@@ -140,6 +140,7 @@ class Settings(BaseSettings):
         if self.LLM_BASE_URL:
             return min(self.RAG_LLM_MAX_TOKENS, 512)
         return self.RAG_LLM_MAX_TOKENS
+
     MAX_UPLOAD_SIZE_MB: int = 25
 
     def _check_default_secret(self, var_name: str, value: str | None) -> None:

@@ -70,26 +70,25 @@ services:
       - fastapi
       - run
       - "app/main.py"
+    # Watch only app source — not uploads, htmlcov, or __pycache__ under ./backend.
+    # sync+restart on uploads was causing ERR_EMPTY_RESPONSE during document upload.
     develop:
       watch:
-        - path: ./backend
+        - path: ./backend/app
           action: sync+restart
-          target: /app/backend
+          target: /app/backend/app
           ignore:
-            - ./backend/.venv
-            - .venv
-            - ./backend/__pycache__
-            - ./backend/**/__pycache__
-            - ./backend/htmlcov
-            - ./backend/uploads
+            - "**/__pycache__/**"
+            - "**/*.pyc"
         - path: ./backend/pyproject.toml
           action: rebuild
     # TODO: remove once coverage is done locally
     volumes:
       - ./backend/htmlcov:/app/backend/htmlcov
-      - ./backend/uploads:/app/backend/uploads
+      - ./data/uploads:/app/data/uploads
     environment:
       PYTHONDONTWRITEBYTECODE: "1"
+      UPLOAD_DIR: /app/data/uploads
       SMTP_HOST: "mailcatcher"
       SMTP_PORT: "1025"
       SMTP_TLS: "false"

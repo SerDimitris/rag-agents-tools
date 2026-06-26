@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { ChatReadChatMessagesData, ChatReadChatMessagesResponse, ChatSendChatMessageData, ChatSendChatMessageResponse, CustomersReadCustomersData, CustomersReadCustomersResponse, CustomersCreateCustomerData, CustomersCreateCustomerResponse, CustomersReadCustomerData, CustomersReadCustomerResponse, CustomersUpdateCustomerData, CustomersUpdateCustomerResponse, CustomersDeleteCustomerData, CustomersDeleteCustomerResponse, DocumentsReadDocumentsData, DocumentsReadDocumentsResponse, DocumentsCreateDocumentData, DocumentsCreateDocumentResponse, DocumentsUploadDocumentData, DocumentsUploadDocumentResponse, DocumentsReadDocumentData, DocumentsReadDocumentResponse, DocumentsUpdateDocumentData, DocumentsUpdateDocumentResponse, DocumentsDeleteDocumentData, DocumentsDeleteDocumentResponse, DocumentsReextractDocumentData, DocumentsReextractDocumentResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, PrivateCreateUserData, PrivateCreateUserResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { ChatReadChatMessagesData, ChatReadChatMessagesResponse, ChatSendChatMessageData, ChatSendChatMessageResponse, ChatSubmitMessageFeedbackData, ChatSubmitMessageFeedbackResponse, CustomersReadCustomersData, CustomersReadCustomersResponse, CustomersCreateCustomerData, CustomersCreateCustomerResponse, CustomersReadCustomerData, CustomersReadCustomerResponse, CustomersUpdateCustomerData, CustomersUpdateCustomerResponse, CustomersDeleteCustomerData, CustomersDeleteCustomerResponse, DocumentsReadDocumentsData, DocumentsReadDocumentsResponse, DocumentsCreateDocumentData, DocumentsCreateDocumentResponse, DocumentsUploadDocumentData, DocumentsUploadDocumentResponse, DocumentsReadDocumentData, DocumentsReadDocumentResponse, DocumentsUpdateDocumentData, DocumentsUpdateDocumentResponse, DocumentsDeleteDocumentData, DocumentsDeleteDocumentResponse, DocumentsReextractDocumentData, DocumentsReextractDocumentResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, PrivateCreateUserData, PrivateCreateUserResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
 
 export class ChatService {
     /**
@@ -30,7 +30,7 @@ export class ChatService {
             }
         });
     }
-    
+
     /**
      * Send Chat Message
      * Send a message to the document chatbot and receive a reply.
@@ -43,6 +43,30 @@ export class ChatService {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/chat/messages',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+
+    /**
+     * Submit Message Feedback
+     * Submit or update feedback on an assistant chat message.
+     * @param data The data for the request.
+     * @param data.messageId
+     * @param data.requestBody
+     * @returns MessageFeedbackPublic Successful Response
+     * @throws ApiError
+     */
+    public static submitMessageFeedback(data: ChatSubmitMessageFeedbackData): CancelablePromise<ChatSubmitMessageFeedbackResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/chat/messages/{message_id}/feedback',
+            path: {
+                message_id: data.messageId
+            },
             body: data.requestBody,
             mediaType: 'application/json',
             errors: {
@@ -77,7 +101,7 @@ export class CustomersService {
             }
         });
     }
-    
+
     /**
      * Create Customer
      * Create a new customer (superuser only).
@@ -97,7 +121,7 @@ export class CustomersService {
             }
         });
     }
-    
+
     /**
      * Read Customer
      * Get customer by ID.
@@ -118,7 +142,7 @@ export class CustomersService {
             }
         });
     }
-    
+
     /**
      * Update Customer
      * Update a customer (superuser only).
@@ -142,7 +166,7 @@ export class CustomersService {
             }
         });
     }
-    
+
     /**
      * Delete Customer
      * Delete a customer (superuser only). Blocked if documents exist.
@@ -190,7 +214,7 @@ export class DocumentsService {
             }
         });
     }
-    
+
     /**
      * Create Document
      * Create new document metadata entry.
@@ -210,7 +234,7 @@ export class DocumentsService {
             }
         });
     }
-    
+
     /**
      * Upload Document
      * Upload a document file and start background extraction.
@@ -230,7 +254,7 @@ export class DocumentsService {
             }
         });
     }
-    
+
     /**
      * Read Document
      * Get document by ID for a customer.
@@ -255,7 +279,7 @@ export class DocumentsService {
             }
         });
     }
-    
+
     /**
      * Update Document
      * Update a document.
@@ -283,7 +307,7 @@ export class DocumentsService {
             }
         });
     }
-    
+
     /**
      * Delete Document
      * Delete a document.
@@ -308,7 +332,7 @@ export class DocumentsService {
             }
         });
     }
-    
+
     /**
      * Reextract Document
      * Re-run LLM extraction for an existing document.
@@ -355,7 +379,7 @@ export class LoginService {
             }
         });
     }
-    
+
     /**
      * Test Token
      * Test access token
@@ -368,7 +392,7 @@ export class LoginService {
             url: '/api/v1/login/test-token'
         });
     }
-    
+
     /**
      * Recover Password
      * Password Recovery
@@ -389,7 +413,7 @@ export class LoginService {
             }
         });
     }
-    
+
     /**
      * Reset Password
      * Reset password
@@ -409,7 +433,7 @@ export class LoginService {
             }
         });
     }
-    
+
     /**
      * Recover Password Html Content
      * HTML Content for Password Recovery
@@ -477,7 +501,7 @@ export class UsersService {
             }
         });
     }
-    
+
     /**
      * Create User
      * Create new user.
@@ -497,7 +521,7 @@ export class UsersService {
             }
         });
     }
-    
+
     /**
      * Read User Me
      * Get current user.
@@ -510,7 +534,7 @@ export class UsersService {
             url: '/api/v1/users/me'
         });
     }
-    
+
     /**
      * Delete User Me
      * Delete own user.
@@ -523,7 +547,7 @@ export class UsersService {
             url: '/api/v1/users/me'
         });
     }
-    
+
     /**
      * Update User Me
      * Update own user.
@@ -543,7 +567,7 @@ export class UsersService {
             }
         });
     }
-    
+
     /**
      * Update Password Me
      * Update own password.
@@ -563,7 +587,7 @@ export class UsersService {
             }
         });
     }
-    
+
     /**
      * Register User
      * Create new user without the need to be logged in.
@@ -583,7 +607,7 @@ export class UsersService {
             }
         });
     }
-    
+
     /**
      * Read User By Id
      * Get a specific user by id.
@@ -604,7 +628,7 @@ export class UsersService {
             }
         });
     }
-    
+
     /**
      * Update User
      * Update a user.
@@ -628,7 +652,7 @@ export class UsersService {
             }
         });
     }
-    
+
     /**
      * Delete User
      * Delete a user.
@@ -672,7 +696,7 @@ export class UtilsService {
             }
         });
     }
-    
+
     /**
      * Health Check
      * @returns boolean Successful Response

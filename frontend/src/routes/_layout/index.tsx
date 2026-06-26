@@ -20,7 +20,7 @@ function Dashboard() {
     <div>
       <div>
         <h1 className="text-sm sm:text-base truncate max-w-sm text-primary retro-glow-cyan">
-          PLAYER: {currentUser?.full_name || currentUser?.email}
+          USER: {currentUser?.full_name || currentUser?.email}
         </h1>
         <p className="text-muted-foreground font-retro-body mt-2">
           Welcome back — press start to continue<span className="retro-blink">_</span>

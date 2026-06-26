@@ -2,11 +2,11 @@ import uuid
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, BackgroundTasks, File, Form, HTTPException, UploadFile
 from sqlmodel import Session, col, func, select
 
 from app.agents.extractor import run_document_extraction
-from app.api.deps import SessionDep, get_current_moderator, get_customer_or_404
+from app.api.deps import CurrentModerator, SessionDep, get_customer_or_404
 from app.core.config import settings
 from app.core.db import engine
 from app.models import (
@@ -17,7 +17,6 @@ from app.models import (
     DocumentStatus,
     DocumentUpdate,
     Message,
-    User,
 )
 from app.services.file_storage import delete_stored_file, get_customer_upload_dir
 from app.services.file_text import is_allowed_file
@@ -36,7 +35,7 @@ def _schedule_extraction(background_tasks: BackgroundTasks, document_id: uuid.UU
 @router.get("/", response_model=DocumentsPublic)
 def read_documents(
     session: SessionDep,
-    current_user: User = Depends(get_current_moderator),
+    current_user: CurrentModerator,
     customer_id: uuid.UUID,
     skip: int = 0,
     limit: int = 100,
@@ -71,7 +70,7 @@ def read_documents(
 async def upload_document(
     *,
     session: SessionDep,
-    current_user: User = Depends(get_current_moderator),
+    current_user: CurrentModerator,
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     customer_id: uuid.UUID = Form(...),
@@ -124,7 +123,7 @@ async def upload_document(
 @router.get("/{id}", response_model=DocumentPublic)
 def read_document(
     session: SessionDep,
-    current_user: User = Depends(get_current_moderator),
+    current_user: CurrentModerator,
     id: uuid.UUID,
     customer_id: uuid.UUID,
 ) -> Any:
@@ -143,7 +142,7 @@ def create_document(
     *,
     session: SessionDep,
     document_in: DocumentCreate,
-    current_user: User = Depends(get_current_moderator),
+    current_user: CurrentModerator,
 ) -> Any:
     """
     Create new document metadata entry.
@@ -162,7 +161,7 @@ def update_document(
     session: SessionDep,
     id: uuid.UUID,
     customer_id: uuid.UUID,
-    current_user: User = Depends(get_current_moderator),
+    current_user: CurrentModerator,
     document_in: DocumentUpdate,
 ) -> Any:
     """
@@ -187,7 +186,7 @@ def reextract_document(
     id: uuid.UUID,
     customer_id: uuid.UUID,
     background_tasks: BackgroundTasks,
-    current_user: User = Depends(get_current_moderator),
+    current_user: CurrentModerator,
 ) -> Any:
     """
     Re-run LLM extraction for an existing document.
@@ -212,7 +211,7 @@ def delete_document(
     session: SessionDep,
     id: uuid.UUID,
     customer_id: uuid.UUID,
-    current_user: User = Depends(get_current_moderator),
+    current_user: CurrentModerator,
 ) -> Message:
     """
     Delete a document.

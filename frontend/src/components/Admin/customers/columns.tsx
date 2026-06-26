@@ -22,6 +22,15 @@ export const columns: ColumnDef<CustomerPublic>[] = [
     ),
   },
   {
+    accessorKey: "sector",
+    header: "Sector",
+    cell: ({ row }) => (
+      <span className="text-muted-foreground capitalize">
+        {row.original.sector ?? "general"}
+      </span>
+    ),
+  },
+  {
     accessorKey: "is_active",
     header: "Status",
     cell: ({ row }) => (

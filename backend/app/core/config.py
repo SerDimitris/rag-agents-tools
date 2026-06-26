@@ -118,6 +118,8 @@ class Settings(BaseSettings):
     RAG_LLM_MAX_TOKENS: int = 1024
     RAG_CHAT_HISTORY_MESSAGES: int = 6
     RAG_SHORT_QUERY_WORDS: int = 4
+    RAG_MIN_SCORE_FOR_ANSWER: float = 0.55
+    RAG_MULTI_DOC_SCORE_SPREAD: float = 0.05
     LLM_BASE_URL: str | None = None
     UPLOAD_DIR: str = "uploads"
 

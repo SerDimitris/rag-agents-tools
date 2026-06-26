@@ -2,9 +2,12 @@ import { Loader2, Send } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import {
   type ChatMessagePublic,
+  type MessageFeedbackPayload,
+  MessageFeedbackButtons,
   useChatMessages,
   useCustomer,
   useSendChatMessage,
+  useSubmitMessageFeedback,
 } from "@rag-agent/shared"
 import { Button } from "@/components/ui/button"
 import { CustomerSelect } from "@/components/Customers/CustomerSelect"
@@ -14,21 +17,54 @@ import useCustomToast from "@/hooks/useCustomToast"
 import { canShowHeaderCustomerSelect } from "@/lib/roles"
 import { cn } from "@/lib/utils"
 
-function ChatBubble({ message }: { message: ChatMessagePublic }) {
+type ChatBubbleProps = {
+  message: ChatMessagePublic
+  onFeedback: (payload: MessageFeedbackPayload) => void
+  feedbackPending: boolean
+}
+
+function ChatBubble({ message, onFeedback, feedbackPending }: ChatBubbleProps) {
   const isUser = message.role === "user"
+  const isClarification =
+    !isUser && message.response_kind === "clarification"
 
   return (
-    <div className={cn("flex", isUser ? "justify-end" : "justify-start")}>
-      <div
-        className={cn(
-          "max-w-[80%] rounded-none border-2 px-4 py-2 text-sm font-retro-body whitespace-pre-wrap retro-pixel-shadow-sm",
-          isUser
-            ? "bg-primary text-primary-foreground border-primary/50"
-            : "bg-muted text-foreground border-border",
-        )}
-      >
-        {message.content}
+    <div className={cn("flex flex-col gap-1", isUser ? "items-end" : "items-start")}>
+      {isClarification && (
+        <p className="max-w-[80%] text-xs font-medium text-amber-700 dark:text-amber-400">
+          Clarification needed
+        </p>
+      )}
+      <div className={cn("flex", isUser ? "justify-end" : "justify-start")}>
+        <div
+          className={cn(
+            "max-w-[80%] rounded-none border-2 px-4 py-2 text-sm font-retro-body whitespace-pre-wrap retro-pixel-shadow-sm",
+            isUser
+              ? "bg-primary text-primary-foreground border-primary/50"
+              : isClarification
+                ? "bg-amber-50 text-foreground border-amber-300 dark:bg-amber-950/40 dark:border-amber-700"
+                : "bg-muted text-foreground border-border",
+          )}
+        >
+          {message.content}
+        </div>
       </div>
+      {!isUser && message.source_titles && message.source_titles.length > 0 && (
+        <p className="max-w-[80%] text-xs text-muted-foreground">
+          Sources: {message.source_titles.join(", ")}
+        </p>
+      )}
+      {!isUser && (
+        <MessageFeedbackButtons
+          message={message}
+          onFeedback={onFeedback}
+          isPending={feedbackPending}
+          className="flex max-w-[80%] flex-col gap-2"
+          buttonClassName="rounded-none border px-2 py-1 text-xs text-muted-foreground transition hover:bg-muted disabled:opacity-50"
+          activeClassName="border-primary bg-primary/10 text-foreground"
+          formClassName="rounded-none border bg-card p-3 text-xs retro-pixel-shadow-sm"
+        />
+      )}
     </div>
   )
 }
@@ -47,6 +83,17 @@ export function ChatPanel() {
     onSuccess: () => setInput(""),
     onError: (message) => showErrorToast(message),
   })
+
+  const feedbackMutation = useSubmitMessageFeedback(customerId)
+
+  const handleFeedback = (payload: MessageFeedbackPayload) => {
+    feedbackMutation.mutate(payload, {
+      onError: (err) =>
+        showErrorToast(
+          err instanceof Error ? err.message : "Failed to submit feedback",
+        ),
+    })
+  }
 
   useEffect(() => {
     scrollRef.current?.scrollTo({
@@ -91,7 +138,12 @@ export function ChatPanel() {
           </div>
         ) : data?.data.length ? (
           data.data.map((message) => (
-            <ChatBubble key={message.id} message={message} />
+            <ChatBubble
+              key={message.id}
+              message={message}
+              onFeedback={handleFeedback}
+              feedbackPending={feedbackMutation.isPending}
+            />
           ))
         ) : (
           <div className="flex h-full items-center justify-center text-center text-muted-foreground">

@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { ChatReadChatMessagesData, ChatReadChatMessagesResponse, ChatSendChatMessageData, ChatSendChatMessageResponse, CustomersReadCustomersData, CustomersReadCustomersResponse, CustomersCreateCustomerData, CustomersCreateCustomerResponse, CustomersReadCustomerData, CustomersReadCustomerResponse, CustomersUpdateCustomerData, CustomersUpdateCustomerResponse, CustomersDeleteCustomerData, CustomersDeleteCustomerResponse, DocumentsReadDocumentsData, DocumentsReadDocumentsResponse, DocumentsCreateDocumentData, DocumentsCreateDocumentResponse, DocumentsUploadDocumentData, DocumentsUploadDocumentResponse, DocumentsReadDocumentData, DocumentsReadDocumentResponse, DocumentsUpdateDocumentData, DocumentsUpdateDocumentResponse, DocumentsDeleteDocumentData, DocumentsDeleteDocumentResponse, DocumentsReextractDocumentData, DocumentsReextractDocumentResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, PrivateCreateUserData, PrivateCreateUserResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { ChatReadChatMessagesData, ChatReadChatMessagesResponse, ChatSendChatMessageData, ChatSendChatMessageResponse, ChatSubmitMessageFeedbackData, ChatSubmitMessageFeedbackResponse, CustomersReadCustomersData, CustomersReadCustomersResponse, CustomersCreateCustomerData, CustomersCreateCustomerResponse, CustomersReadCustomerData, CustomersReadCustomerResponse, CustomersUpdateCustomerData, CustomersUpdateCustomerResponse, CustomersDeleteCustomerData, CustomersDeleteCustomerResponse, DocumentsReadDocumentsData, DocumentsReadDocumentsResponse, DocumentsCreateDocumentData, DocumentsCreateDocumentResponse, DocumentsUploadDocumentData, DocumentsUploadDocumentResponse, DocumentsReadDocumentData, DocumentsReadDocumentResponse, DocumentsUpdateDocumentData, DocumentsUpdateDocumentResponse, DocumentsDeleteDocumentData, DocumentsDeleteDocumentResponse, DocumentsReextractDocumentData, DocumentsReextractDocumentResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, PrivateCreateUserData, PrivateCreateUserResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
 
 export class ChatService {
     /**
@@ -43,6 +43,30 @@ export class ChatService {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/chat/messages',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Submit Message Feedback
+     * Submit or update feedback on an assistant chat message.
+     * @param data The data for the request.
+     * @param data.messageId
+     * @param data.requestBody
+     * @returns MessageFeedbackPublic Successful Response
+     * @throws ApiError
+     */
+    public static submitMessageFeedback(data: ChatSubmitMessageFeedbackData): CancelablePromise<ChatSubmitMessageFeedbackResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/chat/messages/{message_id}/feedback',
+            path: {
+                message_id: data.messageId
+            },
             body: data.requestBody,
             mediaType: 'application/json',
             errors: {

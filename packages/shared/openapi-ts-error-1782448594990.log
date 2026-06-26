@@ -1,0 +1,16 @@
+[2026-06-26T04:36:34.990Z] Error: Error parsing d:/AI%20Coding%20Factory/rag-agent-multitenant-v3/packages/shared/openapi.json: null byte is not allowed in input (1:4)
+
+ 1 | ��{
+--------^
+ 2 | "
+ 3 | o
+Stack:
+ParserError: Error parsing d:/AI%20Coding%20Factory/rag-agent-multitenant-v3/packages/shared/openapi.json: null byte is not allowed in input (1:4)
+
+ 1 | ��{
+--------^
+ 2 | "
+ 3 | o
+    at Object.handler (D:\AI Coding Factory\rag-agent-multitenant-v3\node_modules\@hey-api\json-schema-ref-parser\dist\lib\parsers\yaml.js:24:19)
+    at runNextPlugin (D:\AI Coding Factory\rag-agent-multitenant-v3\node_modules\@hey-api\json-schema-ref-parser\dist\lib\util\plugins.js:24:45)
+    at runNextPlugin (D:\AI Coding Factory\rag-agent-multitenant-v3\node_modules\@hey-api\json-schema-ref-parser\dist\lib\util\plugins.js:40:17)

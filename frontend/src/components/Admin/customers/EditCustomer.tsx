@@ -5,7 +5,7 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 
-import { type CustomerPublic, CustomersService } from "@rag-agent/shared"
+import { type CustomerPublic, type CustomerSector, CustomersService } from "@rag-agent/shared"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -28,12 +28,27 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { LoadingButton } from "@/components/ui/loading-button"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import useCustomToast from "@/hooks/useCustomToast"
 import { handleError } from "@/utils"
+
+const CUSTOMER_SECTORS: { value: CustomerSector; label: string }[] = [
+  { value: "banking", label: "Banking" },
+  { value: "telecom", label: "Telecom" },
+  { value: "energy", label: "Energy" },
+  { value: "general", label: "General" },
+]
 
 const formSchema = z.object({
   name: z.string().min(1, { message: "Name is required" }),
   description: z.string().optional(),
+  sector: z.enum(["banking", "telecom", "energy", "general"]),
   is_active: z.boolean(),
 })
 
@@ -54,6 +69,7 @@ const EditCustomer = ({ customer, onSuccess }: EditCustomerProps) => {
     defaultValues: {
       name: customer.name,
       description: customer.description ?? "",
+      sector: customer.sector ?? "general",
       is_active: customer.is_active,
     },
   })
@@ -65,6 +81,7 @@ const EditCustomer = ({ customer, onSuccess }: EditCustomerProps) => {
         requestBody: {
           name: data.name,
           description: data.description || null,
+          sector: data.sector,
           is_active: data.is_active,
         },
       }),
@@ -119,6 +136,30 @@ const EditCustomer = ({ customer, onSuccess }: EditCustomerProps) => {
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="sector"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Sector</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select sector" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {CUSTOMER_SECTORS.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

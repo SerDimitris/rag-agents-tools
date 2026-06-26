@@ -1,9 +1,12 @@
 import {
   type ChatMessagePublic,
   CustomerSelect,
+  type MessageFeedbackPayload,
+  MessageFeedbackButtons,
   useChatMessages,
   useCustomer,
   useSendChatMessage,
+  useSubmitMessageFeedback,
 } from "@rag-agent/shared"
 import { useEffect, useRef, useState } from "react"
 
@@ -12,13 +15,44 @@ type ChatViewProps = {
   onLogout: () => void
 }
 
-function ChatBubble({ message }: { message: ChatMessagePublic }) {
+type ChatBubbleProps = {
+  message: ChatMessagePublic
+  onFeedback: (payload: MessageFeedbackPayload) => void
+  feedbackPending: boolean
+}
+
+function ChatBubble({ message, onFeedback, feedbackPending }: ChatBubbleProps) {
   const isUser = message.role === "user"
+  const isClarification =
+    !isUser && message.response_kind === "clarification"
 
   return (
     <div className={`widget-bubble-row ${isUser ? "is-user" : "is-assistant"}`}>
-      <div className={`widget-bubble ${isUser ? "is-user" : "is-assistant"}`}>
-        {message.content}
+      <div className="widget-bubble-stack">
+        {isClarification && (
+          <p className="widget-clarification-label">Clarification needed</p>
+        )}
+        <div
+          className={`widget-bubble ${isUser ? "is-user" : "is-assistant"}${isClarification ? " is-clarification" : ""}`}
+        >
+          {message.content}
+        </div>
+        {!isUser && message.source_titles && message.source_titles.length > 0 && (
+          <p className="widget-muted widget-sources">
+            Sources: {message.source_titles.join(", ")}
+          </p>
+        )}
+        {!isUser && (
+          <MessageFeedbackButtons
+            message={message}
+            onFeedback={onFeedback}
+            isPending={feedbackPending}
+            className="widget-feedback-row"
+            buttonClassName="widget-feedback-button"
+            activeClassName="is-active"
+            formClassName="widget-feedback-form"
+          />
+        )}
       </div>
     </div>
   )
@@ -39,6 +73,17 @@ export function ChatView({ userEmail, onLogout }: ChatViewProps) {
     },
     onError: setErrorMessage,
   })
+
+  const feedbackMutation = useSubmitMessageFeedback(customerId)
+
+  const handleFeedback = (payload: MessageFeedbackPayload) => {
+    feedbackMutation.mutate(payload, {
+      onError: (err) =>
+        setErrorMessage(
+          err instanceof Error ? err.message : "Failed to submit feedback",
+        ),
+    })
+  }
 
   useEffect(() => {
     scrollRef.current?.scrollTo({
@@ -85,7 +130,12 @@ export function ChatView({ userEmail, onLogout }: ChatViewProps) {
               <p className="widget-muted widget-center">Loading conversation...</p>
             ) : data?.data.length ? (
               data.data.map((message) => (
-                <ChatBubble key={message.id} message={message} />
+                <ChatBubble
+                  key={message.id}
+                  message={message}
+                  onFeedback={handleFeedback}
+                  feedbackPending={feedbackMutation.isPending}
+                />
               ))
             ) : (
               <div className="widget-center widget-empty">

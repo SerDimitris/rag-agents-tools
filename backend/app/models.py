@@ -28,6 +28,13 @@ class DocumentStatus(str, Enum):
     failed = "failed"
 
 
+class CustomerSector(str, Enum):
+    banking = "banking"
+    telecom = "telecom"
+    energy = "energy"
+    general = "general"
+
+
 # Shared properties
 class UserBase(SQLModel):
     email: EmailStr = Field(unique=True, index=True, max_length=255)
@@ -88,6 +95,7 @@ class UsersPublic(SQLModel):
 class CustomerBase(SQLModel):
     name: str = Field(min_length=1, max_length=255)
     description: str | None = Field(default=None, max_length=1000)
+    sector: CustomerSector = Field(default=CustomerSector.general)
     is_active: bool = True
 
 
@@ -98,6 +106,7 @@ class CustomerCreate(CustomerBase):
 class CustomerUpdate(SQLModel):
     name: str | None = Field(default=None, min_length=1, max_length=255)
     description: str | None = Field(default=None, max_length=1000)
+    sector: CustomerSector | None = None
     is_active: bool | None = None
 
 
@@ -190,6 +199,24 @@ class ChatMessageRole(str, Enum):
     assistant = "assistant"
 
 
+class FeedbackRating(str, Enum):
+    positive = "positive"
+    negative = "negative"
+
+
+class FeedbackReason(str, Enum):
+    wrong = "wrong"
+    incomplete = "incomplete"
+    outdated = "outdated"
+    off_topic = "off_topic"
+    other = "other"
+
+
+class ChatResponseKind(str, Enum):
+    answer = "answer"
+    clarification = "clarification"
+
+
 class ChatMessageBase(SQLModel):
     content: str = Field(min_length=1, max_length=10000)
 
@@ -207,6 +234,16 @@ class ChatMessage(ChatMessageBase, table=True):
         foreign_key="customer.id", nullable=False, index=True, ondelete="CASCADE"
     )
     role: ChatMessageRole
+    reply_to_id: uuid.UUID | None = Field(
+        default=None,
+        foreign_key="chatmessage.id",
+        nullable=True,
+        index=True,
+    )
+    rag_trace: dict[str, Any] | None = Field(
+        default=None,
+        sa_column=Column(JSONB, nullable=True),
+    )
     created_at: datetime | None = Field(
         default_factory=get_datetime_utc,
         sa_type=DateTime(timezone=True),  # type: ignore
@@ -217,6 +254,10 @@ class ChatMessagePublic(ChatMessageBase):
     id: uuid.UUID
     customer_id: uuid.UUID
     role: ChatMessageRole
+    reply_to_id: uuid.UUID | None = None
+    source_titles: list[str] = Field(default_factory=list)
+    response_kind: ChatResponseKind = ChatResponseKind.answer
+    feedback_rating: FeedbackRating | None = None
     created_at: datetime | None = None
 
 
@@ -228,6 +269,43 @@ class ChatMessagesPublic(SQLModel):
 class ChatResponse(SQLModel):
     user_message: ChatMessagePublic
     assistant_message: ChatMessagePublic
+
+
+class MessageFeedbackCreate(SQLModel):
+    rating: FeedbackRating
+    reason: FeedbackReason | None = None
+    comment: str | None = Field(default=None, max_length=2000)
+
+
+class MessageFeedback(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    message_id: uuid.UUID = Field(
+        foreign_key="chatmessage.id",
+        nullable=False,
+        index=True,
+        ondelete="CASCADE",
+    )
+    user_id: uuid.UUID = Field(
+        foreign_key="user.id",
+        nullable=False,
+        ondelete="CASCADE",
+    )
+    rating: FeedbackRating
+    reason: FeedbackReason | None = None
+    comment: str | None = Field(default=None, max_length=2000)
+    created_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+
+
+class MessageFeedbackPublic(SQLModel):
+    id: uuid.UUID
+    message_id: uuid.UUID
+    rating: FeedbackRating
+    reason: FeedbackReason | None = None
+    comment: str | None = None
+    created_at: datetime | None = None
 
 
 # Generic message

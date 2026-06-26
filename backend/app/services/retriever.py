@@ -21,6 +21,12 @@ class RetrievedChunk:
     score: float
 
 
+@dataclass(frozen=True)
+class RetrievalResult:
+    chunks: list[RetrievedChunk]
+    expanded_queries: list[str]
+
+
 def index_document_chunks(
     session: Session, document_id: uuid.UUID, raw_text: str
 ) -> int:
@@ -130,7 +136,7 @@ def retrieve_relevant_chunks(
     customer_id: uuid.UUID,
     *,
     top_k: int | None = None,
-) -> list[RetrievedChunk]:
+) -> RetrievalResult:
     top_k = top_k or settings.RAG_TOP_K
     expanded_queries = expand_query(query)
     merged: dict[uuid.UUID, RetrievedChunk] = {}
@@ -140,7 +146,7 @@ def retrieve_relevant_chunks(
 
     if has_embeddings:
         per_query_limit = max(top_k, 3)
-        for expanded_query, query_embedding in zip(
+        for _expanded_query, query_embedding in zip(
             expanded_queries, embeddings, strict=True
         ):
             if query_embedding is None:
@@ -162,7 +168,7 @@ def retrieve_relevant_chunks(
                     merged[result.chunk_id] = result
 
     ranked = sorted(merged.values(), key=lambda item: item.score, reverse=True)
-    return ranked[:top_k]
+    return RetrievalResult(chunks=ranked[:top_k], expanded_queries=expanded_queries)
 
 
 def format_retrieved_context(chunks: list[RetrievedChunk]) -> str:
@@ -178,5 +184,5 @@ def format_retrieved_context(chunks: list[RetrievedChunk]) -> str:
 def retrieve_knowledge_context(
     session: Session, query: str, customer_id: uuid.UUID
 ) -> str:
-    chunks = retrieve_relevant_chunks(session, query, customer_id)
-    return format_retrieved_context(chunks)
+    result = retrieve_relevant_chunks(session, query, customer_id)
+    return format_retrieved_context(result.chunks)

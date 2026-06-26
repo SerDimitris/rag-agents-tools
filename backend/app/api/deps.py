@@ -68,6 +68,9 @@ def get_current_moderator(current_user: CurrentUser) -> User:
     raise HTTPException(status_code=403, detail="Not enough permissions")
 
 
+CurrentModerator = Annotated[User, Depends(get_current_moderator)]
+
+
 def get_customer_or_404(session: Session, customer_id: uuid.UUID) -> Customer:
     customer = session.get(Customer, customer_id)
     if not customer:

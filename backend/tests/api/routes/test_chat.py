@@ -1,5 +1,3 @@
-from io import BytesIO
-
 from fastapi.testclient import TestClient
 from sqlmodel import Session
 
@@ -55,9 +53,7 @@ def test_submit_message_feedback(
         params={"customer_id": str(customer.id)},
     )
     assistant_messages = [
-        item
-        for item in messages_response.json()["data"]
-        if item["role"] == "assistant"
+        item for item in messages_response.json()["data"] if item["role"] == "assistant"
     ]
     assert assistant_messages[-1]["feedback_rating"] == "positive"
 

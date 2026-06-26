@@ -1,9 +1,9 @@
-from app.models import CustomerSector
 from app.agents.chat_prompts import (
     build_system_prompt,
     few_shot_messages_for_sector,
     resolve_effective_sector,
 )
+from app.models import CustomerSector
 
 
 def test_resolve_effective_sector_uses_customer_default() -> None:

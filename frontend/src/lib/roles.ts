@@ -1,17 +1,13 @@
-import { FileText, Home, MessageSquare, Users } from "lucide-react"
 import {
   canAccessDocuments,
   canManageDocuments,
   canShowHeaderCustomerSelect,
   type UserPublic,
 } from "@rag-agent/shared"
+import { FileText, Home, MessageSquare, Users } from "lucide-react"
 import type { Item } from "@/components/Sidebar/Main"
 
-export {
-  canManageDocuments,
-  canAccessDocuments,
-  canShowHeaderCustomerSelect,
-}
+export { canAccessDocuments, canManageDocuments, canShowHeaderCustomerSelect }
 
 export function getNavItems(user: UserPublic | null | undefined): Item[] {
   const items: Item[] = [{ icon: Home, title: "Dashboard", path: "/" }]

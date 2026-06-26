@@ -1,3 +1,7 @@
+from typing import cast
+
+from openai.types.chat import ChatCompletionMessageParam
+
 from app.models import CustomerSector
 from app.services.text_normalize import tokenize_search_text
 
@@ -208,5 +212,7 @@ def build_system_prompt(
     )
 
 
-def few_shot_messages_for_sector(sector: CustomerSector) -> list[dict[str, str]]:
-    return list(FEW_SHOT_EXAMPLES[sector])
+def few_shot_messages_for_sector(
+    sector: CustomerSector,
+) -> list[ChatCompletionMessageParam]:
+    return cast(list[ChatCompletionMessageParam], list(FEW_SHOT_EXAMPLES[sector]))

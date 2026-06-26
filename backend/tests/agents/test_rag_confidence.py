@@ -1,6 +1,9 @@
 import uuid
 
-from app.agents.rag_confidence import assess_retrieval_confidence, classify_response_kind
+from app.agents.rag_confidence import (
+    assess_retrieval_confidence,
+    classify_response_kind,
+)
 from app.services.retriever import RetrievedChunk
 
 

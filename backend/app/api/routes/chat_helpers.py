@@ -49,6 +49,7 @@ def to_chat_message_public(
         created_at=message.created_at,
     )
 
+
 def feedback_by_message_id(
     feedback_rows: list[MessageFeedback],
 ) -> dict[uuid.UUID, MessageFeedback]:

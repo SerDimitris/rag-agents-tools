@@ -1,7 +1,6 @@
+import uuid
 from collections.abc import Generator
 from typing import Annotated
-
-import uuid
 
 import jwt
 from fastapi import Depends, HTTPException, status

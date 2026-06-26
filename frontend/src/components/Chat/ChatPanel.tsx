@@ -1,16 +1,16 @@
-import { Loader2, Send } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
 import {
   type ChatMessagePublic,
-  type MessageFeedbackPayload,
   MessageFeedbackButtons,
+  type MessageFeedbackPayload,
   useChatMessages,
   useCustomer,
   useSendChatMessage,
   useSubmitMessageFeedback,
 } from "@rag-agent/shared"
-import { Button } from "@/components/ui/button"
+import { Loader2, Send } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
 import { CustomerSelect } from "@/components/Customers/CustomerSelect"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import useAuth from "@/hooks/useAuth"
 import useCustomToast from "@/hooks/useCustomToast"
@@ -25,11 +25,15 @@ type ChatBubbleProps = {
 
 function ChatBubble({ message, onFeedback, feedbackPending }: ChatBubbleProps) {
   const isUser = message.role === "user"
-  const isClarification =
-    !isUser && message.response_kind === "clarification"
+  const isClarification = !isUser && message.response_kind === "clarification"
 
   return (
-    <div className={cn("flex flex-col gap-1", isUser ? "items-end" : "items-start")}>
+    <div
+      className={cn(
+        "flex flex-col gap-1",
+        isUser ? "items-end" : "items-start",
+      )}
+    >
       {isClarification && (
         <p className="max-w-[80%] text-xs font-medium text-amber-700 dark:text-amber-400">
           Clarification needed
@@ -100,7 +104,7 @@ export function ChatPanel() {
       top: scrollRef.current.scrollHeight,
       behavior: "smooth",
     })
-  }, [data?.data.length, mutation.isPending])
+  }, [])
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault()
@@ -113,7 +117,9 @@ export function ChatPanel() {
     return (
       <div className="flex h-[calc(100vh-12rem)] flex-col items-center justify-center gap-4 rounded-none border-2 bg-card retro-pixel-shadow">
         {showChatCustomerSelect && <CustomerSelect />}
-        <p className="text-muted-foreground">Select a customer to start chatting.</p>
+        <p className="text-muted-foreground">
+          Select a customer to start chatting.
+        </p>
       </div>
     )
   }
@@ -126,7 +132,9 @@ export function ChatPanel() {
         ) : (
           <span>
             Chatting for{" "}
-            <span className="font-medium text-foreground">{selectedCustomer?.name}</span>
+            <span className="font-medium text-foreground">
+              {selectedCustomer?.name}
+            </span>
           </span>
         )}
       </div>

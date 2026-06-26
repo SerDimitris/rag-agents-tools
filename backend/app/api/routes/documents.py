@@ -24,7 +24,9 @@ from app.services.file_text import is_allowed_file
 router = APIRouter(prefix="/documents", tags=["documents"])
 
 
-def _schedule_extraction(background_tasks: BackgroundTasks, document_id: uuid.UUID) -> None:
+def _schedule_extraction(
+    background_tasks: BackgroundTasks, document_id: uuid.UUID
+) -> None:
     def _run() -> None:
         with Session(engine) as session:
             run_document_extraction(session, document_id)
@@ -35,7 +37,7 @@ def _schedule_extraction(background_tasks: BackgroundTasks, document_id: uuid.UU
 @router.get("/", response_model=DocumentsPublic)
 def read_documents(
     session: SessionDep,
-    current_user: CurrentModerator,
+    _current_user: CurrentModerator,
     customer_id: uuid.UUID,
     skip: int = 0,
     limit: int = 100,
@@ -70,7 +72,7 @@ def read_documents(
 async def upload_document(
     *,
     session: SessionDep,
-    current_user: CurrentModerator,
+    _current_user: CurrentModerator,
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     customer_id: uuid.UUID = Form(...),
@@ -123,7 +125,7 @@ async def upload_document(
 @router.get("/{id}", response_model=DocumentPublic)
 def read_document(
     session: SessionDep,
-    current_user: CurrentModerator,
+    _current_user: CurrentModerator,
     id: uuid.UUID,
     customer_id: uuid.UUID,
 ) -> Any:
@@ -142,7 +144,7 @@ def create_document(
     *,
     session: SessionDep,
     document_in: DocumentCreate,
-    current_user: CurrentModerator,
+    _current_user: CurrentModerator,
 ) -> Any:
     """
     Create new document metadata entry.
@@ -161,7 +163,7 @@ def update_document(
     session: SessionDep,
     id: uuid.UUID,
     customer_id: uuid.UUID,
-    current_user: CurrentModerator,
+    _current_user: CurrentModerator,
     document_in: DocumentUpdate,
 ) -> Any:
     """
@@ -186,7 +188,7 @@ def reextract_document(
     id: uuid.UUID,
     customer_id: uuid.UUID,
     background_tasks: BackgroundTasks,
-    current_user: CurrentModerator,
+    _current_user: CurrentModerator,
 ) -> Any:
     """
     Re-run LLM extraction for an existing document.
@@ -211,7 +213,7 @@ def delete_document(
     session: SessionDep,
     id: uuid.UUID,
     customer_id: uuid.UUID,
-    current_user: CurrentModerator,
+    _current_user: CurrentModerator,
 ) -> Message:
     """
     Delete a document.

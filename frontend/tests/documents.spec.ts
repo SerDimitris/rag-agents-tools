@@ -13,7 +13,9 @@ test("Documents page is accessible and shows correct title", async ({
   await page.goto("/documents")
   await expect(page.getByRole("heading", { name: "Documents" })).toBeVisible()
   await expect(
-    page.getByText("Upload files and track extraction status for the selected customer"),
+    page.getByText(
+      "Upload files and track extraction status for the selected customer",
+    ),
   ).toBeVisible()
 })
 
@@ -39,7 +41,9 @@ test.describe("Documents upload", () => {
     })
     await page.getByRole("button", { name: "Upload" }).click()
 
-    await expect(page.getByText("Document uploaded. Extraction started.")).toBeVisible()
+    await expect(
+      page.getByText("Document uploaded. Extraction started."),
+    ).toBeVisible()
   })
 })
 
@@ -73,7 +77,9 @@ test.describe("Documents viewer access", () => {
 
     await page.goto("/documents")
     await expect(page).not.toHaveURL(/\/documents/)
-    await expect(page.getByRole("heading", { name: "Documents" })).not.toBeVisible()
+    await expect(
+      page.getByRole("heading", { name: "Documents" }),
+    ).not.toBeVisible()
   })
 
   test("Viewer does not see Documents in sidebar", async ({ page }) => {
@@ -83,7 +89,9 @@ test.describe("Documents viewer access", () => {
     await logInUser(page, email, password)
 
     await page.goto("/")
-    await expect(page.getByRole("link", { name: "Documents" })).not.toBeVisible()
+    await expect(
+      page.getByRole("link", { name: "Documents" }),
+    ).not.toBeVisible()
     await expect(page.getByRole("link", { name: "Dashboard" })).toBeVisible()
     await expect(page.getByRole("link", { name: "Chat" })).toBeVisible()
   })

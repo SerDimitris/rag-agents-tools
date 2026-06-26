@@ -30,7 +30,9 @@ class RetrievalResult:
 def index_document_chunks(
     session: Session, document_id: uuid.UUID, raw_text: str
 ) -> int:
-    session.exec(delete(DocumentChunk).where(DocumentChunk.document_id == document_id))
+    session.exec(
+        delete(DocumentChunk).where(col(DocumentChunk.document_id) == document_id)
+    )
 
     chunks = chunk_document_text(raw_text)
     if not chunks:
@@ -61,7 +63,10 @@ def _keyword_score(query: str, content: str) -> float:
 
     matched = 0
     for query_token in query_tokens:
-        if any(tokens_overlap(query_token, content_token) for content_token in content_tokens):
+        if any(
+            tokens_overlap(query_token, content_token)
+            for content_token in content_tokens
+        ):
             matched += 1
     return matched / len(query_tokens)
 
@@ -73,7 +78,7 @@ def _search_by_embedding(
     *,
     limit: int,
 ) -> list[RetrievedChunk]:
-    distance_expr = DocumentChunk.embedding.cosine_distance(query_embedding)
+    distance_expr = DocumentChunk.embedding.cosine_distance(query_embedding)  # type: ignore[union-attr]  # ty: ignore[unresolved-attribute]
     statement = (
         select(
             DocumentChunk,

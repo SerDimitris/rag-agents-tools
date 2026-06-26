@@ -3,7 +3,15 @@ from typing import Any
 from sqlmodel import Session, select
 
 from app.core.security import get_password_hash, verify_password
-from app.models import Customer, CustomerCreate, Document, DocumentCreate, User, UserCreate, UserUpdate
+from app.models import (
+    Customer,
+    CustomerCreate,
+    Document,
+    DocumentCreate,
+    User,
+    UserCreate,
+    UserUpdate,
+)
 
 
 def create_user(*, session: Session, user_create: UserCreate) -> User:
@@ -59,9 +67,7 @@ def authenticate(*, session: Session, email: str, password: str) -> User | None:
     return db_user
 
 
-def create_document(
-    *, session: Session, document_in: DocumentCreate
-) -> Document:
+def create_document(*, session: Session, document_in: DocumentCreate) -> Document:
     db_document = Document.model_validate(document_in)
     session.add(db_document)
     session.commit()

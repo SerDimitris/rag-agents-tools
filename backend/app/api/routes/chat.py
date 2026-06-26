@@ -68,7 +68,9 @@ def read_chat_messages(
         .limit(limit)
     )
     messages = session.exec(statement).all()
-    assistant_ids = [message.id for message in messages if message.role == ChatMessageRole.assistant]
+    assistant_ids = [
+        message.id for message in messages if message.role == ChatMessageRole.assistant
+    ]
     feedback_map = _load_feedback_for_messages(session, current_user, assistant_ids)
 
     return ChatMessagesPublic(
@@ -145,7 +147,9 @@ def submit_message_feedback(
     if message.user_id != current_user.id:
         raise HTTPException(status_code=404, detail="Message not found")
     if message.role != ChatMessageRole.assistant:
-        raise HTTPException(status_code=400, detail="Feedback is only allowed on assistant messages")
+        raise HTTPException(
+            status_code=400, detail="Feedback is only allowed on assistant messages"
+        )
 
     get_customer_or_404(session, message.customer_id)
 

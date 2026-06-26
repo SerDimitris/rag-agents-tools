@@ -3,8 +3,8 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
-from pydantic import EmailStr
 from pgvector.sqlalchemy import Vector
+from pydantic import EmailStr
 from sqlalchemy import Column, DateTime, Text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Field, SQLModel

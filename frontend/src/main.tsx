@@ -1,16 +1,16 @@
 import {
-  MutationCache,
-  QueryCache,
-  QueryClient,
-  QueryClientProvider,
-} from "@tanstack/react-query"
-import {
   ApiError,
   clearSession,
   configureApi,
   isAuthFailure,
   localStorageAdapter,
 } from "@rag-agent/shared"
+import {
+  MutationCache,
+  QueryCache,
+  QueryClient,
+  QueryClientProvider,
+} from "@tanstack/react-query"
 import { createRouter, RouterProvider } from "@tanstack/react-router"
 import { StrictMode } from "react"
 import ReactDOM from "react-dom/client"

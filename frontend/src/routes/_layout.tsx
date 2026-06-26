@@ -1,5 +1,5 @@
+import { CustomerProvider } from "@rag-agent/shared"
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router"
-
 import { Footer } from "@/components/Common/Footer"
 import { CustomerSelect } from "@/components/Customers/CustomerSelect"
 import AppSidebar from "@/components/Sidebar/AppSidebar"
@@ -8,7 +8,6 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
-import { CustomerProvider } from "@rag-agent/shared"
 import useAuth, { isLoggedIn } from "@/hooks/useAuth"
 import { canShowHeaderCustomerSelect } from "@/lib/roles"
 

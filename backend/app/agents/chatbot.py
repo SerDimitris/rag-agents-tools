@@ -1,8 +1,9 @@
 import uuid
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, cast
 
 from openai import OpenAI
+from openai.types.chat import ChatCompletionMessageParam
 from sqlmodel import Session, col, select
 
 from app.agents.chat_prompts import (
@@ -10,8 +11,11 @@ from app.agents.chat_prompts import (
     few_shot_messages_for_sector,
     resolve_effective_sector,
 )
-from app.agents.rag_confidence import assess_retrieval_confidence, classify_response_kind
 from app.agents.extractor import build_knowledge_context
+from app.agents.rag_confidence import (
+    assess_retrieval_confidence,
+    classify_response_kind,
+)
 from app.core.config import settings
 from app.models import ChatMessage, Customer, CustomerSector
 from app.services.llm import get_llm_client
@@ -37,7 +41,7 @@ class ChatReply:
 
 @dataclass(frozen=True)
 class PreparedChatReply:
-    messages: list[dict[str, str]] | None
+    messages: list[ChatCompletionMessageParam] | None
     rag_trace: dict[str, Any] | None
     fallback: ChatReply | None
 
@@ -122,7 +126,7 @@ def _fallback_reply(
 
 def _build_chat_history(
     session: Session, user_id: uuid.UUID, customer_id: uuid.UUID
-) -> list[dict[str, str]]:
+) -> list[ChatCompletionMessageParam]:
     statement = (
         select(ChatMessage)
         .where(ChatMessage.user_id == user_id)
@@ -131,10 +135,18 @@ def _build_chat_history(
         .limit(settings.RAG_CHAT_HISTORY_MESSAGES)
     )
     messages = list(reversed(session.exec(statement).all()))
-    return [{"role": message.role.value, "content": message.content} for message in messages]
+    return cast(
+        list[ChatCompletionMessageParam],
+        [
+            {"role": message.role.value, "content": message.content}
+            for message in messages
+        ],
+    )
 
 
-def _completion_content(client: OpenAI, messages: list[dict[str, str]]) -> str:
+def _completion_content(
+    client: OpenAI, messages: list[ChatCompletionMessageParam]
+) -> str:
     response = client.chat.completions.create(
         model=settings.OPENAI_MODEL,
         messages=messages,
@@ -173,13 +185,26 @@ def prepare_chat_reply(
     effective_sector = resolve_effective_sector(customer_sector, user_message)
     few_shots = few_shot_messages_for_sector(effective_sector)
 
-    system_message = {
-        "role": "system",
-        "content": build_system_prompt(knowledge, customer_sector, effective_sector),
-    }
-    user_turn = {"role": "user", "content": user_message}
+    system_message = cast(
+        ChatCompletionMessageParam,
+        {
+            "role": "system",
+            "content": build_system_prompt(
+                knowledge, customer_sector, effective_sector
+            ),
+        },
+    )
+    user_turn = cast(
+        ChatCompletionMessageParam,
+        {"role": "user", "content": user_message},
+    )
     history = _build_chat_history(session, user_id, customer_id)
-    messages = [system_message, *few_shots, *history, user_turn]
+    messages: list[ChatCompletionMessageParam] = [
+        system_message,
+        *few_shots,
+        *history,
+        user_turn,
+    ]
 
     return PreparedChatReply(messages=messages, rag_trace=rag_trace, fallback=None)
 
@@ -203,7 +228,9 @@ def complete_chat_reply(prepared: PreparedChatReply) -> ChatReply:
     if prepared.fallback is not None:
         return ChatReply(
             content=prepared.fallback.content,
-            rag_trace=_finalize_rag_trace(prepared.rag_trace, prepared.fallback.content),
+            rag_trace=_finalize_rag_trace(
+                prepared.rag_trace, prepared.fallback.content
+            ),
         )
 
     client = get_llm_client()

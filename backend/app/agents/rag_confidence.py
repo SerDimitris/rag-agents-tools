@@ -48,7 +48,11 @@ def assess_retrieval_confidence(
     short_query_threshold = max_score is None or max_score < (
         settings.RAG_MIN_SCORE_FOR_ANSWER + 0.1
     )
-    if len(query_tokens) <= settings.RAG_SHORT_QUERY_WORDS and chunks and short_query_threshold:
+    if (
+        len(query_tokens) <= settings.RAG_SHORT_QUERY_WORDS
+        and chunks
+        and short_query_threshold
+    ):
         triggers.append("short_vague_query")
 
     if "no_chunks" in triggers or (

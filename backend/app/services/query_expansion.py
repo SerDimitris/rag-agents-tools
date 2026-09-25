@@ -20,9 +20,11 @@ User question:
 
 def _parse_variations(raw: str) -> list[str]:
     raw = raw.strip()
-    if raw.startswith("["):
+    # Models often wrap the array in ```json fences or add trailing text.
+    array_match = re.search(r"\[.*\]", raw, re.DOTALL)
+    if array_match:
         try:
-            parsed = json.loads(raw)
+            parsed = json.loads(array_match.group(0))
             if isinstance(parsed, list):
                 return [str(item).strip() for item in parsed if str(item).strip()]
         except json.JSONDecodeError:
@@ -72,7 +74,7 @@ def expand_query(query: str, *, variation_count: int | None = None) -> list[str]
                 }
             ],
             temperature=0.3,
-            max_tokens=512,
+            max_tokens=settings.RAG_LLM_MAX_TOKENS,
         )
     except Exception:  # noqa: BLE001
         return [query]

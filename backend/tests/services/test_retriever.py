@@ -56,9 +56,8 @@ def test_index_and_retrieve_by_keywords(db: Session) -> None:
     )
     assert result.expanded_queries
     assert result.chunks
+    assert result.mode == "keyword"
     assert any("block" in chunk.content.lower() for chunk in result.chunks)
 
-    knowledge = retrieve_knowledge_context(
-        db, "How do I block my card?", customer.id
-    )
+    knowledge = retrieve_knowledge_context(db, "How do I block my card?", customer.id)
     assert "block" in knowledge.lower()

@@ -1,11 +1,10 @@
-import asyncio
 import uuid
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
 from sqlmodel import col, func, select
 
-from app.agents.chatbot import complete_chat_reply, prepare_chat_reply
+from app.agents.chatbot import generate_chat_reply
 from app.api.deps import CurrentUser, SessionDep, get_customer_or_404
 from app.api.routes.chat_helpers import feedback_by_message_id, to_chat_message_public
 from app.models import (
@@ -86,21 +85,24 @@ def read_chat_messages(
 
 
 @router.post("/messages", response_model=ChatResponse)
-async def send_chat_message(
+def send_chat_message(
     *, session: SessionDep, current_user: CurrentUser, message_in: ChatMessageCreate
 ) -> Any:
     """
     Send a message to the document chatbot and receive a reply.
+
+    Declared sync so FastAPI runs the whole RAG pipeline (query expansion,
+    embeddings, retrieval, completion) in its threadpool instead of blocking
+    the event loop on those network calls.
     """
     get_customer_or_404(session, message_in.customer_id)
 
-    prepared = prepare_chat_reply(
+    reply = generate_chat_reply(
         session=session,
         user_id=current_user.id,
         customer_id=message_in.customer_id,
         user_message=message_in.content,
     )
-    reply = await asyncio.to_thread(complete_chat_reply, prepared)
 
     user_message = ChatMessage(
         user_id=current_user.id,

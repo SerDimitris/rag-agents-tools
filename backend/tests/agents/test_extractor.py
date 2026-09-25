@@ -2,7 +2,9 @@ import uuid
 from pathlib import Path
 from unittest.mock import MagicMock
 
+import httpx
 import pytest
+from openai import APIConnectionError
 from sqlmodel import Session
 
 from app.agents.extractor import (
@@ -48,6 +50,20 @@ def test_extract_with_llm_uses_client_response(
 
     summary = _extract_with_llm("Quarterly revenue increased.")
     assert summary == "Structured summary"
+
+
+def test_extract_with_llm_falls_back_when_llm_errors(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    mock_client = MagicMock()
+    mock_client.chat.completions.create.side_effect = APIConnectionError(
+        request=httpx.Request("POST", "http://llm.test/v1/chat/completions")
+    )
+    monkeypatch.setattr("app.agents.extractor.get_llm_client", lambda: mock_client)
+
+    summary = _extract_with_llm("Quarterly revenue increased.")
+    assert "Automatic extraction" in summary
+    assert "Quarterly revenue increased." in summary
 
 
 def test_build_knowledge_context_without_documents(db: Session) -> None:

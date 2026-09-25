@@ -1,7 +1,16 @@
+import uuid
+from unittest.mock import MagicMock
+
+import httpx
+import pytest
 from fastapi.testclient import TestClient
+from openai import APIConnectionError
 from sqlmodel import Session
 
+from app.agents.chatbot import LLM_UNAVAILABLE_MESSAGE
 from app.core.config import settings
+from app.models import ChatMessage, Document, DocumentStatus
+from app.services.retriever import index_document_chunks
 from tests.utils.customer import create_random_customer
 
 
@@ -25,6 +34,50 @@ def test_send_chat_message(
     assert content["assistant_message"]["reply_to_id"] == content["user_message"]["id"]
     assistant_text = content["assistant_message"]["content"].lower()
     assert "document" in assistant_text or "έγγραφ" in assistant_text
+
+
+def test_send_chat_message_survives_llm_outage(
+    client: TestClient,
+    superuser_token_headers: dict[str, str],
+    db: Session,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    customer = create_random_customer(db)
+    document = Document(
+        customer_id=customer.id,
+        title="Card FAQ",
+        file_path=f"uploads/{customer.id}/faq.txt",
+        status=DocumentStatus.completed,
+    )
+    db.add(document)
+    db.commit()
+    index_document_chunks(
+        db,
+        document.id,
+        "Question: How do I block my card?\nAnswer: Call 210 1234567.",
+    )
+
+    failing_client = MagicMock()
+    failing_client.chat.completions.create.side_effect = APIConnectionError(
+        request=httpx.Request("POST", "http://llm.test/v1/chat/completions")
+    )
+    monkeypatch.setattr("app.agents.chatbot.get_llm_client", lambda: failing_client)
+
+    response = client.post(
+        f"{settings.API_V1_STR}/chat/messages",
+        headers=superuser_token_headers,
+        json={"content": "How do I block my card?", "customer_id": str(customer.id)},
+    )
+
+    assert response.status_code == 200
+    assistant = response.json()["assistant_message"]
+    assert assistant["content"] == LLM_UNAVAILABLE_MESSAGE
+    assert assistant["source_titles"] == ["Card FAQ"]
+
+    stored = db.get(ChatMessage, uuid.UUID(assistant["id"]))
+    assert stored is not None and stored.rag_trace is not None
+    assert stored.rag_trace["llm_error"] == "APIConnectionError"
+    assert stored.rag_trace["retrieval_mode"] == "keyword"
 
 
 def test_submit_message_feedback(

@@ -66,6 +66,40 @@ def test_classify_response_kind_clarification() -> None:
     assert kind == "clarification"
 
 
+def test_classify_response_kind_explicit_greek_clarification_not_recommended() -> None:
+    # Real model reply to the vague query "κάρτα"; note the unaccented
+    # "διευκρινίστε" and Greek question marks.
+    reply = (
+        "Το ερώτημα «κάρτα» είναι πολύ γενικό. Παρακαλώ διευκρινίστε:\n"
+        "1. **Απώλεια/Κλοπή:** Θέλετε να μάθετε τι να κάνετε αν χάσετε την κάρτα σας;\n"
+        "2. **Όρια:** Θέλετε να αυξήσετε το ημερήσιο όριο ανάληψης;"
+    )
+    assert (
+        classify_response_kind(reply, clarification_recommended=False)
+        == "clarification"
+    )
+
+
+def test_classify_response_kind_greek_question_mark_when_recommended() -> None:
+    assert (
+        classify_response_kind(
+            "Χάσατε την κάρτα ή θέλετε αλλαγή PIN;",
+            clarification_recommended=True,
+        )
+        == "clarification"
+    )
+
+
+def test_classify_response_kind_ignores_english_semicolons() -> None:
+    assert (
+        classify_response_kind(
+            "Call 210 9999999; select option 2; confirm the block.",
+            clarification_recommended=True,
+        )
+        == "answer"
+    )
+
+
 def test_classify_response_kind_answer_when_not_recommended() -> None:
     kind = classify_response_kind(
         "Did you lose the card?",

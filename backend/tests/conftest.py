@@ -13,6 +13,16 @@ from tests.utils.utils import get_superuser_token_headers
 
 
 @pytest.fixture(scope="session", autouse=True)
+def _disable_llm() -> Generator[None, None, None]:
+    # Tests must be deterministic and offline regardless of the LLM configured
+    # in .env; tests that need a model patch get_llm_client with a mock.
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setattr(settings, "OPENAI_API_KEY", None)
+        mp.setattr(settings, "LLM_BASE_URL", None)
+        yield
+
+
+@pytest.fixture(scope="session", autouse=True)
 def db() -> Generator[Session, None, None]:
     with Session(engine) as session:
         init_db(session)

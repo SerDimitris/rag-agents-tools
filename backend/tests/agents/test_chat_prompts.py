@@ -27,6 +27,22 @@ def test_resolve_effective_sector_keeps_customer_on_weak_cross_signal() -> None:
     assert sector == CustomerSector.banking
 
 
+def test_resolve_effective_sector_matches_stems_and_inflections() -> None:
+    # "μπλοκάρισμα" only matches the "μπλοκ" stem, "λογαριασμό" is an
+    # inflection shorter than the "λογαριασμος" hint.
+    sector = resolve_effective_sector(
+        CustomerSector.energy,
+        "θέλω μπλοκάρισμα στον λογαριασμό μου",
+    )
+    assert sector == CustomerSector.banking
+
+
+def test_resolve_effective_sector_ignores_short_prefix_tokens() -> None:
+    # "μετα" is a prefix of the "μεταφορα" hint but too short to count.
+    sector = resolve_effective_sector(CustomerSector.telecom, "μετα από internet")
+    assert sector == CustomerSector.telecom
+
+
 def test_few_shot_messages_for_sector_returns_user_assistant_pair() -> None:
     messages = few_shot_messages_for_sector(CustomerSector.energy)
     assert len(messages) == 2

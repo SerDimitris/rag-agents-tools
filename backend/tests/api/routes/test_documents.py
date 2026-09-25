@@ -39,7 +39,9 @@ def test_upload_document(
     response = client.post(
         f"{settings.API_V1_STR}/documents/upload",
         headers=superuser_token_headers,
-        files={"file": ("report.txt", BytesIO(b"Quarterly report content"), "text/plain")},
+        files={
+            "file": ("report.txt", BytesIO(b"Quarterly report content"), "text/plain")
+        },
         data={"title": "Quarterly Report", "customer_id": str(customer.id)},
     )
     assert response.status_code == 200
@@ -149,7 +151,9 @@ def test_upload_document_not_enough_permissions(
     response = client.post(
         f"{settings.API_V1_STR}/documents/upload",
         headers=normal_user_token_headers,
-        files={"file": ("report.txt", BytesIO(b"Quarterly report content"), "text/plain")},
+        files={
+            "file": ("report.txt", BytesIO(b"Quarterly report content"), "text/plain")
+        },
         data={"title": "Quarterly Report", "customer_id": str(customer.id)},
     )
     assert response.status_code == 403

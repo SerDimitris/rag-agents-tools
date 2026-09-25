@@ -1,5 +1,6 @@
 import uuid
 from dataclasses import dataclass
+from typing import Literal
 
 from sqlalchemy import delete
 from sqlmodel import Session, col, select
@@ -21,10 +22,14 @@ class RetrievedChunk:
     score: float
 
 
+RetrievalMode = Literal["vector", "keyword", "none"]
+
+
 @dataclass(frozen=True)
 class RetrievalResult:
     chunks: list[RetrievedChunk]
     expanded_queries: list[str]
+    mode: RetrievalMode = "none"
 
 
 def index_document_chunks(
@@ -163,6 +168,7 @@ def retrieve_relevant_chunks(
                 if existing is None or result.score > existing.score:
                     merged[result.chunk_id] = result
 
+    mode: RetrievalMode = "vector" if merged else "none"
     if not merged:
         for expanded_query in expanded_queries:
             for result in _search_by_keywords(
@@ -171,9 +177,13 @@ def retrieve_relevant_chunks(
                 existing = merged.get(result.chunk_id)
                 if existing is None or result.score > existing.score:
                     merged[result.chunk_id] = result
+        if merged:
+            mode = "keyword"
 
     ranked = sorted(merged.values(), key=lambda item: item.score, reverse=True)
-    return RetrievalResult(chunks=ranked[:top_k], expanded_queries=expanded_queries)
+    return RetrievalResult(
+        chunks=ranked[:top_k], expanded_queries=expanded_queries, mode=mode
+    )
 
 
 def format_retrieved_context(chunks: list[RetrievedChunk]) -> str:

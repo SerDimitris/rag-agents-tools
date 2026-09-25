@@ -1,5 +1,9 @@
 from app.services.retriever import _keyword_score
-from app.services.text_normalize import normalize_greek, tokenize_search_text, tokens_overlap
+from app.services.text_normalize import (
+    normalize_greek,
+    tokenize_search_text,
+    tokens_overlap,
+)
 
 
 def test_normalize_greek_strips_accents() -> None:

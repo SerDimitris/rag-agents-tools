@@ -7,7 +7,9 @@ from app.models import Document, DocumentCreate
 from tests.utils.utils import random_lower_string
 
 
-def create_random_document(db: Session, customer_id: uuid.UUID | None = None) -> Document:
+def create_random_document(
+    db: Session, customer_id: uuid.UUID | None = None
+) -> Document:
     from tests.utils.customer import create_random_customer
 
     if customer_id is None:

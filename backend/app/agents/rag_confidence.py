@@ -1,11 +1,25 @@
+import re
 from typing import Any, Literal
 
 from app.core.config import settings
 from app.services.retriever import RetrievedChunk
-from app.services.text_normalize import tokenize_search_text
+from app.services.text_normalize import normalize_greek, tokenize_search_text
 
 ConfidenceLevel = Literal["low", "medium", "high"]
 ResponseKind = Literal["answer", "clarification"]
+
+_GREEK_LETTER = re.compile(r"[Ͱ-Ͽ]")
+_TRAILING_DECORATION = " \t\n*_)»\"'"
+
+
+def _question_marks(text: str) -> str:
+    # Greek writes the question mark as ";" (its semicolon is "·"), so ";"
+    # only counts in Greek text and English semicolons are not questions.
+    if _GREEK_LETTER.search(text):
+        # (normalize_greek applies NFD, which maps U+037E to a plain ";".)
+        return "?;"
+    return "?"
+
 
 CLARIFY_PHRASES = (
     "διευκρίν",
@@ -75,23 +89,40 @@ def assess_retrieval_confidence(
     }
 
 
+# Phrases that are an explicit request for clarification on their own, so the
+# reply counts as a clarification even when retrieval did not recommend one.
+EXPLICIT_CLARIFY_PHRASES = (
+    "διευκριν",
+    "clarif",
+    "please specify",
+    "which of",
+    "ποιο απο",
+)
+
+
 def classify_response_kind(
     content: str,
     *,
     clarification_recommended: bool,
 ) -> ResponseKind:
-    stripped = content.strip()
-    if not stripped or not clarification_recommended:
+    normalized = normalize_greek(content.strip())
+    if not normalized:
         return "answer"
 
-    lower = stripped.lower()
-    has_question = "?" in stripped
-    has_clarify_phrase = any(phrase in lower for phrase in CLARIFY_PHRASES)
+    marks = _question_marks(normalized)
+    question_count = sum(normalized.count(mark) for mark in marks)
+    if not question_count:
+        return "answer"
 
-    if has_question and (has_clarify_phrase or stripped.endswith("?")):
-        return "clarification"
+    if not clarification_recommended:
+        explicit = any(phrase in normalized for phrase in EXPLICIT_CLARIFY_PHRASES)
+        return "clarification" if explicit else "answer"
 
-    if stripped.count("?") >= 2:
+    has_clarify_phrase = any(
+        normalize_greek(phrase) in normalized for phrase in CLARIFY_PHRASES
+    )
+    ends_with_question = normalized.rstrip(_TRAILING_DECORATION)[-1:] in marks
+    if has_clarify_phrase or ends_with_question or question_count >= 2:
         return "clarification"
 
     return "answer"

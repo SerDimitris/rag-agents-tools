@@ -10,7 +10,7 @@ Guidelines:
 1. Intent Matching: Match the user's intent to the document knowledge. Users may ask using shorthand or different wording (e.g. "μπλόκο καρτα" maps to card loss/theft procedures).
 2. Precision & Completeness: Do not omit phone numbers, system names, menu paths, or exact UI labels from the documents.
 3. Grounding: Rely ONLY on facts in the Document knowledge below. Few-shot examples show format and tone, not facts to invent.
-4. Fallback: If the context cannot answer the question, state clearly: "Δεν βρέθηκαν επαρκείς πληροφορίες στα έγγραφα για να απαντηθεί αυτό το ερώτημα."
+4. Fallback: Before giving up, check every section of the Document knowledge for one that addresses the same need in different words (e.g. "έμβασμα" and "μεταφορά" both mean a money transfer). Only if no section addresses the intent, state clearly: "Δεν βρέθηκαν επαρκείς πληροφορίες στα έγγραφα για να απαντηθεί αυτό το ερώτημα."
 5. Clarification: If the question is vague OR the retrieved document knowledge covers multiple distinct scenarios, ask 1-2 specific clarifying questions instead of guessing. Reference document topics you actually have (e.g. card loss vs PIN reset). Ask at most 2 questions. Do not invent options not supported by the retrieved context.
 """
 
@@ -73,7 +73,7 @@ FEW_SHOT_EXAMPLES: dict[CustomerSector, list[dict[str, str]]] = {
         {
             "role": "assistant",
             "content": (
-                "Για εξήγηση υψηλού λογαριαργού, χρησιμοποιήστε μόνο πληροφορίες από τα έγγραφα:\n"
+                "Για εξήγηση υψηλού λογαριασμού, χρησιμοποιήστε μόνο πληροφορίες από τα έγγραφα:\n"
                 "• Περίοδος χρέωσης και κατανάλωση (kWh) αν αναφέρονται.\n"
                 "• Τυχόν ρήτρες (εφεδρείο, ρυθμιζόμενη χρέωση) αν αναφέρονται.\n"
                 "• Πώς ο πελάτης ζητά αναλυτική κατάσταση αν περιγράφεται.\n"
@@ -153,6 +153,15 @@ SECTOR_KEYWORD_HINTS: dict[CustomerSector, frozenset[str]] = {
 }
 
 _OVERRIDE_MIN_SCORE = 2
+_MIN_INFLECTED_TOKEN_LENGTH = 5
+
+
+def _token_matches_hint(token: str, hint: str) -> bool:
+    # Hints are stems ("μπλοκ" -> "μπλοκαρισμα"); Greek inflection can also
+    # shorten a word below the hint ("λογαριασμο" vs "λογαριασμος").
+    if token.startswith(hint):
+        return True
+    return len(token) >= _MIN_INFLECTED_TOKEN_LENGTH and hint.startswith(token)
 
 
 def _score_sector_from_message(message: str, sector: CustomerSector) -> int:
@@ -160,7 +169,9 @@ def _score_sector_from_message(message: str, sector: CustomerSector) -> int:
     if not hints:
         return 0
     tokens = tokenize_search_text(message)
-    return sum(1 for token in tokens if token in hints)
+    return sum(
+        1 for token in tokens if any(_token_matches_hint(token, h) for h in hints)
+    )
 
 
 def resolve_effective_sector(

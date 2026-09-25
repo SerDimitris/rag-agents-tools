@@ -1,8 +1,9 @@
+import logging
 import uuid
 from dataclasses import dataclass
 from typing import Any, cast
 
-from openai import OpenAI
+from openai import OpenAI, OpenAIError
 from openai.types.chat import ChatCompletionMessageParam
 from sqlmodel import Session, col, select
 
@@ -20,9 +21,17 @@ from app.core.config import settings
 from app.models import ChatMessage, Customer, CustomerSector
 from app.services.llm import get_llm_client
 from app.services.retriever import (
+    RetrievalResult,
     RetrievedChunk,
     format_retrieved_context,
     retrieve_relevant_chunks,
+)
+
+logger = logging.getLogger(__name__)
+
+LLM_UNAVAILABLE_MESSAGE = (
+    "The AI model is temporarily unavailable, so I could not generate an answer. "
+    "Please try again in a moment."
 )
 
 
@@ -52,6 +61,7 @@ def build_rag_trace(
     *,
     used_fallback_context: bool,
     query: str,
+    retrieval_mode: str = "none",
 ) -> dict[str, Any]:
     chunk_entries: list[dict[str, Any]] = []
     for rank, chunk in enumerate(chunks, start=1):
@@ -75,6 +85,7 @@ def build_rag_trace(
         "model": settings.OPENAI_MODEL,
         "top_k": settings.RAG_TOP_K,
         "expanded_queries": expanded_queries,
+        "retrieval_mode": retrieval_mode,
         "chunks": chunk_entries,
         "max_score": round(max_score, 4) if max_score is not None else None,
         "used_fallback_context": used_fallback_context,
@@ -85,18 +96,13 @@ def build_rag_trace(
 
 def _resolve_knowledge(
     session: Session, user_message: str, customer_id: uuid.UUID
-) -> tuple[str, list[RetrievedChunk], list[str], bool]:
+) -> tuple[str, RetrievalResult, bool]:
     retrieval = retrieve_relevant_chunks(session, user_message, customer_id)
-    knowledge = format_retrieved_context(retrieval.chunks)
-    used_fallback = False
+    if retrieval.chunks:
+        return format_retrieved_context(retrieval.chunks), retrieval, False
 
-    if knowledge.startswith("No extracted"):
-        knowledge = build_knowledge_context(session, customer_id)
-        used_fallback = True
-        if knowledge.startswith("No extracted"):
-            return knowledge, [], retrieval.expanded_queries, used_fallback
-
-    return knowledge, retrieval.chunks, retrieval.expanded_queries, used_fallback
+    # No chunk matched: fall back to the per-document LLM summaries.
+    return build_knowledge_context(session, customer_id), retrieval, True
 
 
 def _fallback_reply(
@@ -151,9 +157,15 @@ def _completion_content(
         model=settings.OPENAI_MODEL,
         messages=messages,
         temperature=0.4,
-        max_tokens=settings.chat_max_tokens,
+        max_tokens=settings.RAG_LLM_MAX_TOKENS,
     )
-    content = response.choices[0].message.content
+    choice = response.choices[0]
+    if choice.finish_reason == "length":
+        logger.warning(
+            "Chat completion hit RAG_LLM_MAX_TOKENS=%d; reply may be truncated",
+            settings.RAG_LLM_MAX_TOKENS,
+        )
+    content = choice.message.content
     return content.strip() if content else ""
 
 
@@ -163,14 +175,15 @@ def prepare_chat_reply(
     customer_id: uuid.UUID,
     user_message: str,
 ) -> PreparedChatReply:
-    knowledge, chunks, expanded_queries, used_fallback = _resolve_knowledge(
+    knowledge, retrieval, used_fallback = _resolve_knowledge(
         session, user_message, customer_id
     )
     rag_trace = build_rag_trace(
-        chunks,
-        expanded_queries,
+        retrieval.chunks,
+        retrieval.expanded_queries,
         used_fallback_context=used_fallback,
         query=user_message,
+        retrieval_mode=retrieval.mode,
     )
 
     client = get_llm_client()
@@ -241,7 +254,15 @@ def complete_chat_reply(prepared: PreparedChatReply) -> ChatReply:
             rag_trace=_finalize_rag_trace(prepared.rag_trace, content),
         )
 
-    content = _completion_content(client, prepared.messages or [])
+    try:
+        content = _completion_content(client, prepared.messages or [])
+    except OpenAIError as exc:
+        logger.exception("Chat completion failed")
+        trace = _finalize_rag_trace(prepared.rag_trace, LLM_UNAVAILABLE_MESSAGE)
+        if trace is not None:
+            trace["llm_error"] = type(exc).__name__
+        return ChatReply(content=LLM_UNAVAILABLE_MESSAGE, rag_trace=trace)
+
     final_content = content or "I could not generate a response."
     return ChatReply(
         content=final_content,

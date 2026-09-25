@@ -1,5 +1,7 @@
+import logging
 import uuid
 
+from openai import OpenAIError
 from sqlmodel import Session, select
 
 from app.core.config import settings
@@ -8,6 +10,8 @@ from app.services.file_storage import resolve_upload_path
 from app.services.file_text import read_text_from_file
 from app.services.llm import get_llm_client
 from app.services.retriever import index_document_chunks
+
+logger = logging.getLogger(__name__)
 
 EXTRACTION_PROMPT = """You are a document extraction agent. Analyze the following document content and extract the most important information.
 
@@ -43,16 +47,21 @@ def _extract_with_llm(raw_text: str) -> str:
     if len(truncated) > 120000:
         truncated = truncated[:120000]
 
-    response = client.chat.completions.create(
-        model=settings.OPENAI_MODEL,
-        messages=[
-            {
-                "role": "user",
-                "content": EXTRACTION_PROMPT.format(content=truncated),
-            }
-        ],
-        temperature=0.2,
-    )
+    try:
+        response = client.chat.completions.create(
+            model=settings.OPENAI_MODEL,
+            messages=[
+                {
+                    "role": "user",
+                    "content": EXTRACTION_PROMPT.format(content=truncated),
+                }
+            ],
+            temperature=0.2,
+        )
+    except OpenAIError:
+        # The summary is only a fallback context; chunk indexing can proceed.
+        logger.warning("LLM summary failed; using text preview", exc_info=True)
+        return _fallback_summary(raw_text)
     content = response.choices[0].message.content
     return content.strip() if content else _fallback_summary(raw_text)
 

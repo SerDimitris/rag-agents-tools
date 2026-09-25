@@ -1,5 +1,5 @@
-import { OpenAPI } from "@rag-agent/shared"
 import type { DocumentPublic } from "@rag-agent/shared"
+import { OpenAPI } from "@rag-agent/shared"
 
 export async function uploadDocument(
   file: File,
@@ -26,7 +26,9 @@ export async function uploadDocument(
   })
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: "Upload failed" }))
+    const error = await response
+      .json()
+      .catch(() => ({ detail: "Upload failed" }))
     throw new Error(
       typeof error.detail === "string"
         ? error.detail

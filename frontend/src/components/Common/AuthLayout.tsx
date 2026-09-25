@@ -12,7 +12,11 @@ export function AuthLayout({ children }: AuthLayoutProps) {
     <div className="grid min-h-svh lg:grid-cols-2">
       <div className="dark retro-cabinet-bg retro-scanlines relative hidden overflow-hidden lg:flex lg:flex-col lg:items-center lg:justify-center lg:gap-6">
         <RetroStarfield />
-        <Logo variant="full" className="text-2xl sm:text-3xl z-10" asLink={false} />
+        <Logo
+          variant="full"
+          className="text-2xl sm:text-3xl z-10"
+          asLink={false}
+        />
         <p className="font-retro-display text-[9px] sm:text-[10px] text-primary/80 retro-glow-cyan z-10 text-center px-6 tracking-wider">
           READ · LEARN · LEVEL UP
         </p>

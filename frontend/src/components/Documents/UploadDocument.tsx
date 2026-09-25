@@ -1,7 +1,7 @@
+import { useCustomer } from "@rag-agent/shared"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { CloudUpload, FileText, Plus } from "lucide-react"
 import { useCallback, useRef, useState } from "react"
-
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -17,7 +17,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { LoadingButton } from "@/components/ui/loading-button"
 import useCustomToast from "@/hooks/useCustomToast"
-import { useCustomer } from "@rag-agent/shared"
 import { uploadDocument } from "@/lib/uploadDocument"
 import { cn } from "@/lib/utils"
 
@@ -65,20 +64,26 @@ const UploadDocument = () => {
     },
   })
 
-  const handleFileSelection = (file: File | null) => {
-    if (!file) return
-    setSelectedFile(file)
-    if (!title.trim()) {
-      setTitle(file.name.replace(/\.[^.]+$/, ""))
-    }
-  }
+  const handleFileSelection = useCallback(
+    (file: File | null) => {
+      if (!file) return
+      setSelectedFile(file)
+      if (!title.trim()) {
+        setTitle(file.name.replace(/\.[^.]+$/, ""))
+      }
+    },
+    [title],
+  )
 
-  const onDrop = useCallback((event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault()
-    setIsDragging(false)
-    const file = event.dataTransfer.files?.[0]
-    handleFileSelection(file ?? null)
-  }, [title])
+  const onDrop = useCallback(
+    (event: React.DragEvent<HTMLButtonElement>) => {
+      event.preventDefault()
+      setIsDragging(false)
+      const file = event.dataTransfer.files?.[0]
+      handleFileSelection(file ?? null)
+    },
+    [handleFileSelection],
+  )
 
   return (
     <Dialog
@@ -116,9 +121,8 @@ const UploadDocument = () => {
             />
           </div>
 
-          <div
-            role="button"
-            tabIndex={0}
+          <button
+            type="button"
             onClick={() => fileInputRef.current?.click()}
             onKeyDown={(event) => {
               if (event.key === "Enter" || event.key === " ") {
@@ -132,7 +136,7 @@ const UploadDocument = () => {
             onDragLeave={() => setIsDragging(false)}
             onDrop={onDrop}
             className={cn(
-              "flex min-h-40 cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed p-6 text-center transition-colors",
+              "flex min-h-40 w-full cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed p-6 text-center transition-colors",
               isDragging
                 ? "border-primary bg-primary/5"
                 : "border-muted-foreground/30 hover:border-primary/50",
@@ -155,7 +159,7 @@ const UploadDocument = () => {
                 </p>
               </>
             )}
-          </div>
+          </button>
 
           <input
             ref={fileInputRef}

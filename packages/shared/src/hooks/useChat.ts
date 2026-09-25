@@ -1,6 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 
-import { ChatService } from "../client"
+import { ChatService, type FeedbackRating, type FeedbackReason } from "../client"
+
+export type MessageFeedbackInput = {
+  messageId: string
+  rating: FeedbackRating
+  reason?: FeedbackReason
+  comment?: string
+}
 
 export function getChatMessagesQueryOptions(customerId: string) {
   return {
@@ -42,6 +49,28 @@ export function useSendChatMessage(
       options?.onError?.(
         err instanceof Error ? err.message : "Failed to send message",
       )
+    },
+  })
+}
+
+export function useSubmitMessageFeedback(customerId: string | null) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({
+      messageId,
+      rating,
+      reason,
+      comment,
+    }: MessageFeedbackInput) =>
+      ChatService.submitMessageFeedback({
+        messageId,
+        requestBody: { rating, reason, comment },
+      }),
+    onSuccess: () => {
+      if (customerId) {
+        queryClient.invalidateQueries({ queryKey: ["chat-messages", customerId] })
+      }
     },
   })
 }

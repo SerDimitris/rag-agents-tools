@@ -18,7 +18,8 @@ def get_customer_upload_dir(customer_id: str) -> Path:
 def resolve_upload_path(file_path: str) -> Path:
     upload_dir = get_upload_dir().resolve()
     resolved = (upload_dir / file_path.removeprefix("uploads/")).resolve()
-    if not str(resolved).startswith(str(upload_dir)):
+    # is_relative_to, not startswith: "/app/uploads-evil" starts with "/app/uploads".
+    if not resolved.is_relative_to(upload_dir):
         raise ValueError("Invalid file path")
     return resolved
 

@@ -1,5 +1,6 @@
 import uuid
 from dataclasses import dataclass
+from typing import Literal
 
 from sqlalchemy import delete
 from sqlmodel import Session, col, select
@@ -21,10 +22,22 @@ class RetrievedChunk:
     score: float
 
 
+RetrievalMode = Literal["vector", "keyword", "none"]
+
+
+@dataclass(frozen=True)
+class RetrievalResult:
+    chunks: list[RetrievedChunk]
+    expanded_queries: list[str]
+    mode: RetrievalMode = "none"
+
+
 def index_document_chunks(
     session: Session, document_id: uuid.UUID, raw_text: str
 ) -> int:
-    session.exec(delete(DocumentChunk).where(DocumentChunk.document_id == document_id))
+    session.exec(
+        delete(DocumentChunk).where(col(DocumentChunk.document_id) == document_id)
+    )
 
     chunks = chunk_document_text(raw_text)
     if not chunks:
@@ -55,7 +68,10 @@ def _keyword_score(query: str, content: str) -> float:
 
     matched = 0
     for query_token in query_tokens:
-        if any(tokens_overlap(query_token, content_token) for content_token in content_tokens):
+        if any(
+            tokens_overlap(query_token, content_token)
+            for content_token in content_tokens
+        ):
             matched += 1
     return matched / len(query_tokens)
 
@@ -67,7 +83,7 @@ def _search_by_embedding(
     *,
     limit: int,
 ) -> list[RetrievedChunk]:
-    distance_expr = DocumentChunk.embedding.cosine_distance(query_embedding)
+    distance_expr = DocumentChunk.embedding.cosine_distance(query_embedding)  # type: ignore[union-attr]  # ty: ignore[unresolved-attribute]
     statement = (
         select(
             DocumentChunk,
@@ -130,7 +146,7 @@ def retrieve_relevant_chunks(
     customer_id: uuid.UUID,
     *,
     top_k: int | None = None,
-) -> list[RetrievedChunk]:
+) -> RetrievalResult:
     top_k = top_k or settings.RAG_TOP_K
     expanded_queries = expand_query(query)
     merged: dict[uuid.UUID, RetrievedChunk] = {}
@@ -140,7 +156,7 @@ def retrieve_relevant_chunks(
 
     if has_embeddings:
         per_query_limit = max(top_k, 3)
-        for expanded_query, query_embedding in zip(
+        for _expanded_query, query_embedding in zip(
             expanded_queries, embeddings, strict=True
         ):
             if query_embedding is None:
@@ -152,6 +168,7 @@ def retrieve_relevant_chunks(
                 if existing is None or result.score > existing.score:
                     merged[result.chunk_id] = result
 
+    mode: RetrievalMode = "vector" if merged else "none"
     if not merged:
         for expanded_query in expanded_queries:
             for result in _search_by_keywords(
@@ -160,9 +177,13 @@ def retrieve_relevant_chunks(
                 existing = merged.get(result.chunk_id)
                 if existing is None or result.score > existing.score:
                     merged[result.chunk_id] = result
+        if merged:
+            mode = "keyword"
 
     ranked = sorted(merged.values(), key=lambda item: item.score, reverse=True)
-    return ranked[:top_k]
+    return RetrievalResult(
+        chunks=ranked[:top_k], expanded_queries=expanded_queries, mode=mode
+    )
 
 
 def format_retrieved_context(chunks: list[RetrievedChunk]) -> str:
@@ -178,5 +199,5 @@ def format_retrieved_context(chunks: list[RetrievedChunk]) -> str:
 def retrieve_knowledge_context(
     session: Session, query: str, customer_id: uuid.UUID
 ) -> str:
-    chunks = retrieve_relevant_chunks(session, query, customer_id)
-    return format_retrieved_context(chunks)
+    result = retrieve_relevant_chunks(session, query, customer_id)
+    return format_retrieved_context(result.chunks)

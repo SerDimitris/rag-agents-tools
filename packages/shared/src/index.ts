@@ -1,12 +1,16 @@
 export { configureApi, getStorageAdapter, resolveApiBaseUrl } from "./api/configure-api"
 export { CustomerSelect } from "./components/CustomerSelect"
+export { MessageFeedbackButtons } from "./components/MessageFeedbackButtons"
 export { CustomerProvider, useCustomer } from "./contexts/CustomerContext"
 export { useAuthSession, clearSession } from "./hooks/useAuthSession"
 export {
   getChatMessagesQueryOptions,
   useChatMessages,
   useSendChatMessage,
+  useSubmitMessageFeedback,
+  type MessageFeedbackInput,
 } from "./hooks/useChat"
+export type { MessageFeedbackPayload } from "./components/MessageFeedbackButtons"
 export {
   VIEWER_EXTENSION_FEATURES,
   canManageDocuments,

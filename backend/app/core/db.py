@@ -1,7 +1,6 @@
+from pgvector.psycopg import register_vector
 from sqlalchemy import event
 from sqlmodel import Session, create_engine, select
-
-from pgvector.psycopg import register_vector
 
 from app import crud
 from app.core.config import settings
@@ -11,7 +10,7 @@ engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
 
 
 @event.listens_for(engine, "connect")
-def _register_pgvector(dbapi_connection, _connection_record) -> None:
+def _register_pgvector(dbapi_connection: object, _connection_record: object) -> None:
     try:
         register_vector(dbapi_connection)
     except Exception:  # noqa: BLE001

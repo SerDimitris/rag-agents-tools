@@ -1,17 +1,15 @@
+import { DocumentsService, UsersService, useCustomer } from "@rag-agent/shared"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { createFileRoute, redirect } from "@tanstack/react-router"
 import { Search } from "lucide-react"
 import { Suspense } from "react"
-
-import { DocumentsService, UsersService } from "@rag-agent/shared"
 import { DataTable } from "@/components/Common/DataTable"
 import { getDocumentColumns } from "@/components/Documents/columns"
 import UploadDocument from "@/components/Documents/UploadDocument"
 import PendingDocuments from "@/components/Pending/PendingDocuments"
-import { useCustomer } from "@rag-agent/shared"
 import useAuth from "@/hooks/useAuth"
-import { canAccessDocuments, canManageDocuments } from "@/lib/roles"
 import { pageTitle } from "@/lib/brand"
+import { canAccessDocuments, canManageDocuments } from "@/lib/roles"
 
 function getDocumentsQueryOptions(customerId: string) {
   return {
@@ -45,20 +43,18 @@ export const Route = createFileRoute("/_layout/documents")({
   }),
 })
 
-function DocumentsTableContent() {
-  const { user } = useAuth()
-  const { customerId, selectedCustomer } = useCustomer()
-  const canManage = canManageDocuments(user)
-
-  if (!customerId) {
-    return (
-      <div className="flex flex-col items-center justify-center py-12 text-center">
-        <p className="text-muted-foreground">Select a customer to view documents.</p>
-      </div>
-    )
-  }
-
-  const { data: documents } = useSuspenseQuery(getDocumentsQueryOptions(customerId))
+function DocumentsTableContent({
+  customerId,
+  selectedCustomerName,
+  canManage,
+}: {
+  customerId: string
+  selectedCustomerName: string | undefined
+  canManage: boolean
+}) {
+  const { data: documents } = useSuspenseQuery(
+    getDocumentsQueryOptions(customerId),
+  )
 
   if (documents.data.length === 0) {
     return (
@@ -68,31 +64,40 @@ function DocumentsTableContent() {
         </div>
         <h3 className="text-lg font-semibold">No documents yet</h3>
         <p className="text-muted-foreground">
-          Upload a document for {selectedCustomer?.name ?? "this customer"} to start
-          extraction
+          Upload a document for {selectedCustomerName ?? "this customer"} to
+          start extraction
         </p>
       </div>
     )
   }
 
   return (
-    <DataTable
-      columns={getDocumentColumns(canManage)}
-      data={documents.data}
-    />
+    <DataTable columns={getDocumentColumns(canManage)} data={documents.data} />
   )
 }
 
 function DocumentsTable() {
-  const { customerId } = useCustomer()
+  const { user } = useAuth()
+  const { customerId, selectedCustomer } = useCustomer()
+  const canManage = canManageDocuments(user)
 
   if (!customerId) {
-    return null
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <p className="text-muted-foreground">
+          Select a customer to view documents.
+        </p>
+      </div>
+    )
   }
 
   return (
     <Suspense fallback={<PendingDocuments />}>
-      <DocumentsTableContent />
+      <DocumentsTableContent
+        customerId={customerId}
+        selectedCustomerName={selectedCustomer?.name}
+        canManage={canManage}
+      />
     </Suspense>
   )
 }

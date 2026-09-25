@@ -1,7 +1,6 @@
+import type { DocumentPublic } from "@rag-agent/shared"
 import { EllipsisVertical } from "lucide-react"
 import { useState } from "react"
-
-import type { DocumentPublic } from "@rag-agent/shared"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,

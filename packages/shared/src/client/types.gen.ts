@@ -25,10 +25,16 @@ export type ChatMessagePublic = {
     id: string;
     customer_id: string;
     role: ChatMessageRole;
+    reply_to_id?: (string | null);
+    source_titles?: Array<(string)>;
+    response_kind?: ChatResponseKind;
+    feedback_rating?: (FeedbackRating | null);
     created_at?: (string | null);
 };
 
 export type ChatMessageRole = 'user' | 'assistant';
+
+export type ChatResponseKind = 'answer' | 'clarification';
 
 export type ChatMessagesPublic = {
     data: Array<ChatMessagePublic>;
@@ -43,16 +49,20 @@ export type ChatResponse = {
 export type CustomerCreate = {
     name: string;
     description?: (string | null);
+    sector?: CustomerSector;
     is_active?: boolean;
 };
 
 export type CustomerPublic = {
     name: string;
     description?: (string | null);
+    sector?: CustomerSector;
     is_active?: boolean;
     id: string;
     created_at?: (string | null);
 };
+
+export type CustomerSector = 'banking' | 'telecom' | 'energy' | 'general';
 
 export type CustomersPublic = {
     data: Array<CustomerPublic>;
@@ -62,6 +72,7 @@ export type CustomersPublic = {
 export type CustomerUpdate = {
     name?: (string | null);
     description?: (string | null);
+    sector?: (CustomerSector | null);
     is_active?: (boolean | null);
 };
 
@@ -99,12 +110,31 @@ export type DocumentUpdate = {
 } | null);
 };
 
+export type FeedbackRating = 'positive' | 'negative';
+
+export type FeedbackReason = 'wrong' | 'incomplete' | 'outdated' | 'off_topic' | 'other';
+
 export type HTTPValidationError = {
     detail?: Array<ValidationError>;
 };
 
 export type Message = {
     message: string;
+};
+
+export type MessageFeedbackCreate = {
+    rating: FeedbackRating;
+    reason?: (FeedbackReason | null);
+    comment?: (string | null);
+};
+
+export type MessageFeedbackPublic = {
+    id: string;
+    message_id: string;
+    rating: FeedbackRating;
+    reason?: (FeedbackReason | null);
+    comment?: (string | null);
+    created_at?: (string | null);
 };
 
 export type NewPassword = {
@@ -198,6 +228,13 @@ export type ChatSendChatMessageData = {
 };
 
 export type ChatSendChatMessageResponse = (ChatResponse);
+
+export type ChatSubmitMessageFeedbackData = {
+    messageId: string;
+    requestBody: MessageFeedbackCreate;
+};
+
+export type ChatSubmitMessageFeedbackResponse = (MessageFeedbackPublic);
 
 export type CustomersReadCustomersData = {
     includeInactive?: boolean;

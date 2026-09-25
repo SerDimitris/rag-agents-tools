@@ -1,7 +1,6 @@
+import type { DocumentPublic } from "@rag-agent/shared"
 import type { ColumnDef } from "@tanstack/react-table"
 import { Check, Copy } from "lucide-react"
-
-import type { DocumentPublic } from "@rag-agent/shared"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"

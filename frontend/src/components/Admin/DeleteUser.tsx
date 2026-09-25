@@ -1,9 +1,8 @@
+import { UsersService } from "@rag-agent/shared"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { Trash2 } from "lucide-react"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
-
-import { UsersService } from "@rag-agent/shared"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
